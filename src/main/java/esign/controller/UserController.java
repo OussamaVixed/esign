@@ -29,7 +29,7 @@ public class UserController {
             return "registration_success";
         } catch (Exception e) {
             
-            return "register1";
+            return "ERROR";
         }
     }
 }
