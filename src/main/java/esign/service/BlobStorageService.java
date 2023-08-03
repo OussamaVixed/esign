@@ -1,6 +1,8 @@
 package esign.service;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobContainerClientBuilder;
+import com.azure.storage.blob.models.BlobItem;
+import com.azure.core.http.rest.PagedIterable;
 import com.azure.storage.blob.BlobClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -8,6 +10,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class BlobStorageService {
@@ -35,5 +39,23 @@ public class BlobStorageService {
             throw new RuntimeException("Failed to upload file to blob storage.", e);
         }
     }
+    public BlobContainerClient getBlobContainerClient() {
+        return this.blobContainerClient;
+    }
+    
+    public List<String> listUserFiles(String userId) {
+        List<String> fileNames = new ArrayList<>();
+        String folderName = userId + "upload/";
+        PagedIterable<BlobItem> blobs = blobContainerClient.listBlobs();
+        for (BlobItem blobItem : blobs) {
+            String blobName = blobItem.getName();
+            if (blobName.startsWith(folderName)) {
+                fileNames.add(blobName.replace(folderName, ""));
+            }
+        }
+        return fileNames;
+    }
+
+
 
 }

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>User Files</title>
+</head>
+<body>
+    <h2>Welcome, <span th:text="${username}"></span>! Here are your files:</h2>
+    <ul th:each="file : ${userFiles}">
+        <li th:text="${file}">
+            <form th:action="@{/sign}" method="post">
+                <input type="hidden" th:value="${username}" name="username">
+                <input type="hidden" th:value="${file}" name="filename">
+                <input type="submit" value="Sign">
+            </form>
+        </li>
+    </ul>
+</body>
+</html>

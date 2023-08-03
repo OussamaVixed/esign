@@ -3,6 +3,9 @@ package esign.controller;
 import esign.model.User;
 import esign.service.BlobStorageService;
 import esign.service.UserService;
+
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -78,5 +81,35 @@ public class UserController {
             return "upload_error";
         }
     }
+    @GetMapping("/userfiles")
+    public String listUserFiles(@RequestParam("username") String username, Model model) {
+        List<String> userFiles = userService.getUserFiles(username);
+        model.addAttribute("username", username);
+        model.addAttribute("userFiles", userFiles);
+        return "userfiles"; // a new HTML template that displays the files
+    }
+    
+    @PostMapping("/sign")
+    public String signFile(@RequestParam("username") String username,
+                           @RequestParam("filename") String filename,
+                           Model model) {
+        try {
+            // Fetch the user by their username
+            User user = userService.findByUsername(username);
+            // Check if a user with the provided username exists
+            if (user != null) {
+                userService.signFile(user.getId().toString(), filename);
+                model.addAttribute("message", "File signed successfully");
+                return "sign_success";
+            } else {
+                model.addAttribute("message", "User not found");
+                return "sign_error";
+            }
+        } catch (Exception e) {
+            model.addAttribute("message", "Failed to sign file");
+            return "sign_error";
+        }
+    }
+
 
 }

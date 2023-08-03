@@ -10,5 +10,11 @@
         <input type="hidden" th:value="${username}" name="username">
         <input type="submit" value="Upload">
     </form>
+    
+    <form th:action="@{/userfiles}" method="get">
+        <input type="hidden" th:value="${username}" name="username">
+        <button type="submit">View Files</button>
+    </form>
+    
 </body>
 </html>
