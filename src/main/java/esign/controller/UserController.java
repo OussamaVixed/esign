@@ -84,6 +84,7 @@ public class UserController {
     @GetMapping("/userfiles")
     public String listUserFiles(@RequestParam("username") String username, Model model) {
         List<String> userFiles = userService.getUserFiles(username);
+        System.out.println("User files for " + username + ": " + userFiles);
         model.addAttribute("username", username);
         model.addAttribute("userFiles", userFiles);
         return "userfiles"; // a new HTML template that displays the files

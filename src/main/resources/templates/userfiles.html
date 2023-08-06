@@ -1,12 +1,33 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Page to list user files">
+    <meta name="keywords" content="User Files, User, Files">
     <title>User Files</title>
+    <link rel="icon" href="/path/to/favicon.ico">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        li {
+            margin-bottom: 1em;
+        }
+        form {
+            display: inline-block;
+        }
+    </style>
 </head>
 <body>
     <h2>Welcome, <span th:text="${username}"></span>! Here are your files:</h2>
     <ul th:each="file : ${userFiles}">
-        <li th:text="${file}">
+        <li>
+            <span th:text="${file}"></span>
             <form th:action="@{/sign}" method="post">
                 <input type="hidden" th:value="${username}" name="username">
                 <input type="hidden" th:value="${file}" name="filename">

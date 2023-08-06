@@ -45,16 +45,27 @@ public class BlobStorageService {
     
     public List<String> listUserFiles(String userId) {
         List<String> fileNames = new ArrayList<>();
-        String folderName = userId + "upload/";
+        String folderName = userId;
+        
+        System.out.println("Folder name: " + folderName);
+        
         PagedIterable<BlobItem> blobs = blobContainerClient.listBlobs();
         for (BlobItem blobItem : blobs) {
             String blobName = blobItem.getName();
+            
+            System.out.println("Blob name: " + blobName);
+            
             if (blobName.startsWith(folderName)) {
-                fileNames.add(blobName.replace(folderName, ""));
+                String fileName = blobName.replace(folderName, "");
+                fileNames.add(fileName);
+                
+                System.out.println("File added: " + fileName);
             }
         }
+        System.out.println("Total files found: " + fileNames.size());
         return fileNames;
     }
+
 
 
 

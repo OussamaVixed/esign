@@ -41,6 +41,10 @@ public class UserService {
         // Create a virtual directory for the registered user
         String folderName = registeredUser.getId() + "upload";
         blobStorageService.createUserFolder(folderName);
+        
+        // Create a virtual sub-directory for the signatures
+        String signatureFolderName = folderName + "/signatures";
+        blobStorageService.createUserFolder(signatureFolderName);
 
         // Generate and upload a certificate for the registered user
         String userId = registeredUser.getId().toString();
@@ -66,29 +70,43 @@ public class UserService {
     public List<String> getUserFiles(String username) {
         User user = findByUsername(username);
         if (user != null) {
-        	 String folderName = user.getId() + "upload";
-             return blobStorageService.listUserFiles(folderName);
+        	String folderName = user.getId() + "upload";
+        	System.out.println(folderName);
+
+            List<String> userFiles = blobStorageService.listUserFiles(folderName);
+            List<String> filteredFiles = new ArrayList<>();
+
+            for (String file : userFiles) {
+                if (!file.endsWith(".keep") && !file.endsWith(".crt") && !file.endsWith(".key") && !file.endsWith(".sig")) {
+                    filteredFiles.add(file);
+                }
+            }
+
+            return filteredFiles;
         }
         return new ArrayList<>(); // return an empty list if the user does not exist
     }
+
     
 
     public void signFile(String userId, String fileName) {
         try {
             // Get the blob client for the user's private key
-            String userFolder = userId + "upload";
+            String userFolder1 = userId + "upload";
             String fileBlobName = fileName;
-            BlobClient fileBlobClient = blobStorageService.getBlobContainerClient().getBlobClient(userFolder + "/" + fileBlobName);
-
+            String blob1 = userFolder1 + fileBlobName ;
+            BlobClient fileBlobClient = blobStorageService.getBlobContainerClient().getBlobClient(blob1);
+            System.out.println(blob1);
             // Download the file data from blob storage
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             fileBlobClient.download(outputStream);
             byte[] fileData = outputStream.toByteArray();
-
+            
             // Sign the file data
             signFileWithPrivateKey(userId, fileName, fileData);
             
         } catch (Exception e) {
+        	e.printStackTrace();
             throw new RuntimeException("Failed to sign the data.", e);
         }
     }
@@ -96,10 +114,13 @@ public class UserService {
     private void signFileWithPrivateKey(String userId, String fileName, byte[] dataToSign) {
         try {
             // Get the blob client for the user's private key
-            String userFolder = userId + "upload";
+            String userFolder2 = userId + "upload";
             String keyBlobName = userId + ".key";
-            BlobClient keyBlobClient = blobStorageService.getBlobContainerClient().getBlobClient(userFolder + "/" + keyBlobName);
-
+            BlobClient keyBlobClient = blobStorageService.getBlobContainerClient().getBlobClient(userFolder2 + "/" + keyBlobName);
+            System.out.println(userFolder2);
+            System.out.println(keyBlobName);
+            System.out.println(userFolder2 + "/" + keyBlobName);
+            
             // Download the user's private key from blob storage
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             keyBlobClient.download(outputStream);
@@ -119,13 +140,29 @@ public class UserService {
             byte[] signedData = signature.sign();
 
             // Save the signature to Azure Blob Storage
-            String sigBlobName = fileName + ".sig";
-            BlobClient sigBlobClient = blobStorageService.getBlobContainerClient().getBlobClient(userFolder + "/" + sigBlobName);
+            String sigBlobName = "/signatures" + fileName + ".sig";
+            BlobClient sigBlobClient = blobStorageService.getBlobContainerClient().getBlobClient(userFolder2 + sigBlobName);
+            System.out.println(userFolder2 + sigBlobName);
             sigBlobClient.upload(new ByteArrayInputStream(signedData), signedData.length);
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to sign the data.", e);
         }
     }
+    public boolean checkSignatureFileExists(String username, String filename) {
+        User user = findByUsername(username);
+        if (user != null) {
+        	String folderName = user.getId() + "upload";
+        	String signaturesFolder = folderName + "/signatures";
+
+            List<String> signatureFiles = blobStorageService.listUserFiles(signaturesFolder);
+
+            String targetFile = filename + ".sig";
+
+            return signatureFiles.contains(targetFile);
+        }
+        return false; // return false if the user does not exist
+    }
+
 
 }
