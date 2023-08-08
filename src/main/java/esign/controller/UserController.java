@@ -4,6 +4,7 @@ import esign.model.User;
 import esign.service.BlobStorageService;
 import esign.service.UserService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,11 +85,21 @@ public class UserController {
     @GetMapping("/userfiles")
     public String listUserFiles(@RequestParam("username") String username, Model model) {
         List<String> userFiles = userService.getUserFiles(username);
-        System.out.println("User files for " + username + ": " + userFiles);
+        List<String> signedFiles = new ArrayList<>();
+
+        for (String file : userFiles) {
+            if (userService.checkSignatureFileExists(username, file)) {
+                signedFiles.add(file);
+            }
+        }
+
         model.addAttribute("username", username);
         model.addAttribute("userFiles", userFiles);
+        model.addAttribute("signedFiles", signedFiles);  // Add this line to provide the signed files to the model
+
         return "userfiles"; // a new HTML template that displays the files
     }
+
     
     @PostMapping("/sign")
     public String signFile(@RequestParam("username") String username,
@@ -111,6 +122,32 @@ public class UserController {
             return "sign_error";
         }
     }
+    @PostMapping("/send")
+    public String sendFile(@RequestParam("senderUsername") String senderUsername,
+                           @RequestParam("receiverUsername") String receiverUsername,
+                           @RequestParam("filename") String filename,
+                           Model model) {
+        try {
+            // Fetch the sender and receiver by their usernames
+            User sender = userService.findByUsername(senderUsername);
+            User receiver = userService.findByUsername(receiverUsername);
+            
+            // Check if both users exist
+            if (sender != null && receiver != null) {
+                blobStorageService.transferFile(sender.getId().toString(), receiver.getId().toString(), filename);
+                model.addAttribute("message", "File sent successfully");
+                return "send_success";
+            } else {
+                model.addAttribute("message", "Sender or Receiver not found");
+                System.out.println("erorr sender or receiver bad");
+                return "send_error";
+            }
+        } catch (Exception e) {
+            model.addAttribute("message", "Failed to send file");
+            return "send_error";
+        }
+    }
+
 
 
 }

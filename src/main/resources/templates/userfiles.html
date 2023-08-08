@@ -9,30 +9,95 @@
     <link rel="icon" href="/path/to/favicon.ico">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #007BFF;
+            color: #fff;
+            text-align: center;
+            padding: 1rem 0;
         }
         ul {
             list-style: none;
-            padding-left: 0;
+            padding: 2rem;
+            background: #fff;
+            max-width: 800px;
+            margin: 2rem auto;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
         }
         li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 1em;
+            padding: 1em;
+            border-bottom: 1px solid #e5e5e5;
         }
-        form {
-            display: inline-block;
+        li:last-child {
+            border-bottom: none;
+        }
+        .button {
+            padding: 0.5em 1em;
+            margin-right: 5px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .signed {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .send-input {
+            padding: 0.4em;
+            border-radius: 5px;
+            border: 1px solid #aaa;
+            margin-right: 5px;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
         }
     </style>
 </head>
 <body>
-    <h2>Welcome, <span th:text="${username}"></span>! Here are your files:</h2>
+    <header>
+        <h2>Welcome, <span th:text="${username}"></span>! Here are your files:</h2>
+    </header>
     <ul th:each="file : ${userFiles}">
         <li>
             <span th:text="${file}"></span>
-            <form th:action="@{/sign}" method="post">
-                <input type="hidden" th:value="${username}" name="username">
-                <input type="hidden" th:value="${file}" name="filename">
-                <input type="submit" value="Sign">
-            </form>
+
+            <div class="actions">
+                <!-- Check if the file is in the signedFiles list for signing -->
+                <div th:if="${#lists.contains(signedFiles, file)}">
+                    <button class="button signed" disabled>Already Signed!</button>
+                </div>
+                <div th:unless="${#lists.contains(signedFiles, file)}">
+                    <form th:action="@{/sign}" method="post" style="display: inline-block;">
+                        <input type="hidden" th:value="${username}" name="username">
+                        <input type="hidden" th:value="${file}" name="filename">
+                        <input type="submit" value="Sign" class="button">
+                    </form>
+                </div>
+
+                <!-- Separate section for sending -->
+                <form th:action="@{/send}" method="post" style="display: inline-block;">
+                    <input type="hidden" th:value="${username}" name="senderUsername">
+                    <input type="hidden" th:value="${file}" name="filename">
+                    <input type="text" name="receiverUsername" placeholder="Receiver's username" class="send-input">
+                    <input type="submit" value="Send" class="button">
+                </form>
+            </div>
         </li>
     </ul>
 </body>

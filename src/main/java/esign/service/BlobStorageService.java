@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,6 +66,27 @@ public class BlobStorageService {
         System.out.println("Total files found: " + fileNames.size());
         return fileNames;
     }
+    public void transferFile(String senderUserId, String receiverUserId, String fileName) {
+        String senderBlobPath = senderUserId + "upload" + fileName;
+        String receiverBlobPath = receiverUserId + "upload" + fileName;
+        System.out.println(senderBlobPath);
+        System.out.println(receiverBlobPath);
+        BlobClient senderBlobClient = blobContainerClient.getBlobClient(senderBlobPath);
+        BlobClient receiverBlobClient = blobContainerClient.getBlobClient(receiverBlobPath);
+        
+        if (!senderBlobClient.exists()) {
+            throw new RuntimeException("File does not exist in sender's folder.");
+        }
+        
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        senderBlobClient.download(outputStream);
+        byte[] fileContent = outputStream.toByteArray();
+        
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(fileContent);
+        receiverBlobClient.upload(inputStream, fileContent.length);
+       
+    }
+
 
 
 
