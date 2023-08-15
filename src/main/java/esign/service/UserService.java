@@ -284,6 +284,40 @@ public class UserService {
             this.signed = signed;
         }
     }
+    public class SignatureInfo2 {
+        private String username1;
+        private long duration; // in milliseconds
+        private String fileName;
+        private boolean signed;
+
+        // Constructor
+        public SignatureInfo2(String username1, long duration, String fileName, boolean signed) {
+            this.username1 = username1;
+            this.duration = duration;
+            this.fileName = fileName;
+            this.signed = signed;
+        }
+
+        public String getUsername1() {
+            return username1;
+        }
+
+        public long getDuration() {
+            return duration;
+        }
+
+        public String getFileName() {
+            return fileName;
+        }
+
+        public boolean isSigned() {
+            return signed;
+        }
+
+        public void setSigned(boolean signed) {
+            this.signed = signed;
+        }
+    }
     
 
         
@@ -305,25 +339,26 @@ public class UserService {
 
         return result;
     }
-    public List<SignatureInfo> findSignaturesByUsername2(String username2) {
+    public List<SignatureInfo2> findSignaturesByUsername2(String username2) {
         List<signature> signatures = signatureRepository.findByUsername2(username2);
 
-        List<SignatureInfo> result = new ArrayList<>();
+        List<SignatureInfo2> result2 = new ArrayList<>();
         for (signature sig : signatures) {
             if (username2.equals(sig.getUsername2())) {
                 long duration = sig.getExpiryDate().getTime() - sig.getIssuanceDate().getTime();
                 boolean isSigned = checkSignatureFileExists(sig.getUsername2(), sig.getFileName());
+                System.out.println("is the file signed:"+ sig.getFileName() + isSigned);
                 if (!isSigned) { // Only add if the file is not signed
-                    SignatureInfo signatureInfo = new SignatureInfo(sig.getUsername1(), duration, sig.getFileName(), isSigned);
-                    result.add(signatureInfo);
-                    System.out.println(signatureInfo); // Print the SignatureInfo object
+                    SignatureInfo2 signatureInfo2 = new SignatureInfo2(sig.getUsername1(), duration, sig.getFileName(), isSigned);
+                    result2.add(signatureInfo2);
+                    System.out.println(signatureInfo2); // Print the SignatureInfo object
                 }
             }
         }
 
-        System.out.println("Signatures for " + username2 + ": " + result); // Print the entire result list
+        System.out.println("Signatures for " + username2 + ": " + result2); // Print the entire result list
 
-        return result;
+        return result2;
     }
 
 

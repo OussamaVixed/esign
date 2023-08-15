@@ -4,6 +4,7 @@ import esign.model.User;
 import esign.service.BlobStorageService;
 import esign.service.UserService;
 import esign.service.UserService.SignatureInfo;
+import esign.service.UserService.SignatureInfo2;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,16 +74,26 @@ public class UserController {
         if (user != null) {
             List<SignatureInfo> signatures = userService.findSignaturesByUsername1(username);
             List<String> formattedDurations = new ArrayList<>();
-
             for (SignatureInfo signatureInfo : signatures) {
                 long durationMillis = signatureInfo.getDuration();
                 String formattedDuration = userService.formatDuration(durationMillis);
                 formattedDurations.add(formattedDuration);
             }
 
+            // Get the list of files to be signed and format their durations
+            List<SignatureInfo2> filesToBeSigned = userService.findSignaturesByUsername2(username);
+            List<String> formattedDurationsForFilesToBeSigned = new ArrayList<>();
+            for (SignatureInfo2 signatureInfo2 : filesToBeSigned) {
+                long durationMillis = signatureInfo2.getDuration();
+                String formattedDuration = userService.formatDuration(durationMillis);
+                formattedDurationsForFilesToBeSigned.add(formattedDuration);
+            }
+
             model.addAttribute("username", username);
             model.addAttribute("signatures", signatures);
-            model.addAttribute("formattedDurations", formattedDurations); // Pass the list of formatted durations to the view
+            model.addAttribute("formattedDurations", formattedDurations);
+            model.addAttribute("filesToBeSigned", filesToBeSigned); // Add the list of files to be signed
+            model.addAttribute("formattedDurationsForFilesToBeSigned", formattedDurationsForFilesToBeSigned); // Add the list of formatted durations for files to be signed
 
             return "postlogin";
         } else {
@@ -90,6 +101,8 @@ public class UserController {
             return "postlogin";
         }
     }
+
+
 
 
 

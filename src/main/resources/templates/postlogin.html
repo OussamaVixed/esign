@@ -20,6 +20,20 @@
             box-shadow: 2px 0px 5px rgba(0,0,0,0.1);
             overflow-y: auto;
         }
+        .download-button {
+		    display: inline-block;
+		    padding: 5px 10px;
+		    background-color: #007bff;
+		    color: #ffffff;
+		    text-decoration: none;
+		    border-radius: 5px;
+		    margin-left: 10px;
+		}
+		
+		.download-button:hover {
+		    background-color: #0056b3;
+		}
+
         .content {
             width: 80%;
             display: flex;
@@ -73,9 +87,17 @@
             <li th:each="signatureInfo, iterStat : ${signatures}">
 			    <span th:text="${signatureInfo.username2}"></span> - <span th:text="${signatureInfo.fileName}"></span>
 			    <span th:if="${signatureInfo.signed}">✅</span> <!-- Green check mark for signed files -->
+			    <a class="download-button" th:if="${signatureInfo.signed and signatureInfo.fileName.endsWith('.pdf')}" th:href="@{'/downloadsigned?username=' + ${signatureInfo.username2} + '&filename=' + ${signatureInfo.fileName}}">Download</a>
 			    <span th:if="${!signatureInfo.signed}" th:text="${formattedDurations[iterStat.index]}"></span> <!-- Formatted duration if not signed -->
 			</li>
         </ul>
+         <h3>Files to be Signed</h3>
+		 <ul class="file-list">
+		     <li th:each="signatureInfo2, iterStat2 : ${filesToBeSigned}">
+		         <span th:text="${signatureInfo2.username1}"></span> - <span th:text="${signatureInfo2.fileName}"></span>
+		         <span th:if="${!signatureInfo2.signed}" th:text="${formattedDurationsForFilesToBeSigned[iterStat2.index]}"></span>
+		      </li>
+		    </ul>
     </div>
     <div class="content">
         <h2>Welcome, <span th:text="${username}"></span>! Please upload your file.</h2>
