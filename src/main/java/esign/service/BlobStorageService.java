@@ -79,6 +79,8 @@ public class BlobStorageService {
         BlobClient senderBlobClient = blobContainerClient.getBlobClient(senderBlobPath);
         BlobClient receiverBlobClient = blobContainerClient.getBlobClient(receiverBlobPath);
         
+        System.out.println("Debug: Transferring file from " + senderBlobPath + " to " + receiverBlobPath);
+
         if (!senderBlobClient.exists()) {
             throw new RuntimeException("File does not exist in sender's folder.");
         }
@@ -90,7 +92,9 @@ public class BlobStorageService {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(fileContent);
         receiverBlobClient.upload(inputStream, fileContent.length);
        
+        System.out.println("Debug: File transferred successfully.");
     }
+
     public User findByUsername(String username) {
         return userRepository.findByUsername(username);
     }
