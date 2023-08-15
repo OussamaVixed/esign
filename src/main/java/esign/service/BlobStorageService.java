@@ -2,8 +2,14 @@ package esign.service;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobContainerClientBuilder;
 import com.azure.storage.blob.models.BlobItem;
+
+import esign.model.User;
+import esign.repository.UserRepository;
+
 import com.azure.core.http.rest.PagedIterable;
 import com.azure.storage.blob.BlobClient;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,7 +22,8 @@ import java.util.List;
 
 @Service
 public class BlobStorageService {
-
+	@Autowired
+    private UserRepository userRepository;
     private BlobContainerClient blobContainerClient;
 
     public BlobStorageService(@Value("${azure.storage.connection-string}") String connectionString,
@@ -48,19 +55,19 @@ public class BlobStorageService {
         List<String> fileNames = new ArrayList<>();
         String folderName = userId;
         
-        System.out.println("Folder name: " + folderName);
+
         
         PagedIterable<BlobItem> blobs = blobContainerClient.listBlobs();
         for (BlobItem blobItem : blobs) {
             String blobName = blobItem.getName();
             
-            System.out.println("Blob name: " + blobName);
+           
             
             if (blobName.startsWith(folderName)) {
                 String fileName = blobName.replace(folderName, "");
                 fileNames.add(fileName);
                 
-                System.out.println("File added: " + fileName);
+                
             }
         }
         System.out.println("Total files found: " + fileNames.size());
@@ -69,8 +76,6 @@ public class BlobStorageService {
     public void transferFile(String senderUserId, String receiverUserId, String fileName) {
         String senderBlobPath = senderUserId + "upload" + fileName;
         String receiverBlobPath = receiverUserId + "upload" + fileName;
-        System.out.println(senderBlobPath);
-        System.out.println(receiverBlobPath);
         BlobClient senderBlobClient = blobContainerClient.getBlobClient(senderBlobPath);
         BlobClient receiverBlobClient = blobContainerClient.getBlobClient(receiverBlobPath);
         
@@ -85,6 +90,59 @@ public class BlobStorageService {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(fileContent);
         receiverBlobClient.upload(inputStream, fileContent.length);
        
+    }
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+    
+    public byte[] downloadFile(String username, String filename) {
+        User user = findByUsername(username);
+        if (user != null) {
+            String folderName = user.getId() + "upload";
+            System.out.println("Folder Name: " + folderName); // Debug print for folderName
+
+            String blobName = folderName + filename;
+            System.out.println("Blob Name: " + blobName); // Debug print for blobName
+
+            BlobClient blobClient = blobContainerClient.getBlobClient(blobName);
+
+            if (!blobClient.exists()) {
+                throw new RuntimeException("File does not exist in user's folder.");
+            }
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            blobClient.download(outputStream);
+
+            return outputStream.toByteArray();
+        } else {
+            throw new RuntimeException("User not found.");
+        }
+    }
+
+
+    public byte[] downloadsignedFile(String username, String filename) {
+        User user = findByUsername(username);
+        if (user != null) {
+            String folderName = user.getId() + "upload" + "/signatures";
+            System.out.println("Folder Name: " + folderName); // Debug print for folderName
+            
+            String newFilename = filename.substring(0, filename.length() - 4) + "_signed.pdf";
+            String blobName = folderName + newFilename;
+            System.out.println("Blob Name: " + blobName); // Debug print for blobName
+
+            BlobClient blobClient = blobContainerClient.getBlobClient(blobName);
+
+            if (!blobClient.exists()) {
+                throw new RuntimeException("File does not exist in user's folder.");
+            }
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            blobClient.download(outputStream);
+
+            return outputStream.toByteArray();
+        } else {
+            throw new RuntimeException("User not found.");
+        }
     }
 
 

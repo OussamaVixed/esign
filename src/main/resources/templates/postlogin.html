@@ -9,10 +9,31 @@
             margin: 0;
             padding: 0;
             display: flex;
+            flex-direction: row;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 20%;
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            box-shadow: 2px 0px 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+        .content {
+            width: 80%;
+            display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+        }
+        .file-list {
+            list-style: none;
+            padding: 0;
+        }
+        .file-list li {
+            padding: 10px;
+            border-bottom: 1px solid #ffffff;
         }
         h2 {
             margin-bottom: 30px;
@@ -25,18 +46,17 @@
             border-radius: 10px;
             margin-bottom: 20px;
         }
-        input[type="file"] {
-            border: 1px solid #ccc;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            width: 100%;
-        }
-        input[type="submit"], button {
+        input[type="file"], input[type="submit"], button {
             width: 100%;
             padding: 10px;
             border-radius: 5px;
             border: none;
+            margin-bottom: 20px;
+        }
+        input[type="file"] {
+            background-color: #f9f9f9;
+        }
+        input[type="submit"], button {
             color: #ffffff;
             background-color: #007bff;
             cursor: pointer;
@@ -47,15 +67,27 @@
     </style>
 </head>
 <body>
-    <h2>Welcome, <span th:text="${username}"></span>! Please upload your file.</h2>
-    <form th:action="@{/upload}" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" required>
-        <input type="hidden" th:value="${username}" name="username">
-        <input type="submit" value="Upload">
-    </form>
-    <form th:action="@{/userfiles}" method="get">
-        <input type="hidden" th:value="${username}" name="username">
-        <button type="submit">View Files</button>
-    </form>
+    <div class="sidebar">
+        <h3>Sent Files</h3>
+        <ul class="file-list">
+            <li th:each="signatureInfo, iterStat : ${signatures}">
+			    <span th:text="${signatureInfo.username2}"></span> - <span th:text="${signatureInfo.fileName}"></span>
+			    <span th:if="${signatureInfo.signed}">✅</span> <!-- Green check mark for signed files -->
+			    <span th:if="${!signatureInfo.signed}" th:text="${formattedDurations[iterStat.index]}"></span> <!-- Formatted duration if not signed -->
+			</li>
+        </ul>
+    </div>
+    <div class="content">
+        <h2>Welcome, <span th:text="${username}"></span>! Please upload your file.</h2>
+        <form th:action="@{/upload}" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" required>
+            <input type="hidden" th:value="${username}" name="username">
+            <input type="submit" value="Upload">
+        </form>
+        <form th:action="@{/userfiles}" method="get">
+            <input type="hidden" th:value="${username}" name="username">
+            <button type="submit">View Files</button>
+        </form>
+    </div>
 </body>
 </html>
