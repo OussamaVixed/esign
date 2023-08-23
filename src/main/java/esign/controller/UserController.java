@@ -1,7 +1,10 @@
 package esign.controller;
 
+import esign.model.FileUpload;
+import esign.model.Groups;
 import esign.model.User;
 import esign.service.BlobStorageService;
+import esign.service.GroupsService;
 import esign.service.UserService;
 import esign.service.UserService.SignatureInfo;
 import esign.service.UserService.SignatureInfo2;
@@ -15,6 +18,7 @@ import java.util.Date;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -22,7 +26,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 @Controller
@@ -33,6 +40,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private GroupsService groupsService;
     
     @Autowired
     private BlobStorageService blobStorageService;
@@ -72,28 +82,39 @@ public class UserController {
         User user = userService.authenticate(username, password);
 
         if (user != null) {
-            List<SignatureInfo> signatures = userService.findSignaturesByUsername1(username);
+//            List<SignatureInfo> signatures = userService.findSignaturesByUsername1(username);
             List<String> formattedDurations = new ArrayList<>();
-            for (SignatureInfo signatureInfo : signatures) {
-                long durationMillis = signatureInfo.getDuration();
-                String formattedDuration = userService.formatDuration(durationMillis);
-                formattedDurations.add(formattedDuration);
-            }
+//            for (SignatureInfo signatureInfo : signatures) {
+//                long durationMillis = signatureInfo.getDuration();
+//                String formattedDuration = userService.formatDuration(durationMillis);
+//                formattedDurations.add(formattedDuration);
+//            }
 
-            // Get the list of files to be signed and format their durations
-            List<SignatureInfo2> filesToBeSigned = userService.findSignaturesByUsername2(username);
-            List<String> formattedDurationsForFilesToBeSigned = new ArrayList<>();
-            for (SignatureInfo2 signatureInfo2 : filesToBeSigned) {
-                long durationMillis = signatureInfo2.getDuration();
-                String formattedDuration = userService.formatDuration(durationMillis);
-                formattedDurationsForFilesToBeSigned.add(formattedDuration);
-            }
+			/*
+			 * // Get the list of files to be signed and format their durations
+			 * List<SignatureInfo2> filesToBeSigned =
+			 * userService.findSignaturesByUsername2(username); List<String>
+			 * formattedDurationsForFilesToBeSigned = new ArrayList<>(); for (SignatureInfo2
+			 * signatureInfo2 : filesToBeSigned) { long durationMillis =
+			 * signatureInfo2.getDuration(); String formattedDuration =
+			 * userService.formatDuration(durationMillis);
+			 * formattedDurationsForFilesToBeSigned.add(formattedDuration); }
+			 */
+         // Query the uploaded files for the logged-in user
+            List<FileUpload> userFiles = userService.getUserFiles1(user.getId()); // You'll need to create this method
+            List<String> groupNames = groupsService.getGroupNamesByUsername(username);
+            model.addAttribute("groups", groupNames);
 
+            // Add the list of uploaded files to the model
+            model.addAttribute("files", userFiles);
+            // Add the list of uploaded files to the model
+            model.addAttribute("files", userFiles);
             model.addAttribute("username", username);
-            model.addAttribute("signatures", signatures);
+//            model.addAttribute("signatures", signatures);
             model.addAttribute("formattedDurations", formattedDurations);
-            model.addAttribute("filesToBeSigned", filesToBeSigned); // Add the list of files to be signed
-            model.addAttribute("formattedDurationsForFilesToBeSigned", formattedDurationsForFilesToBeSigned); // Add the list of formatted durations for files to be signed
+//            model.addAttribute("filesToBeSigned", filesToBeSigned); // Add the list of files to be signed
+//            model.addAttribute("formattedDurationsForFilesToBeSigned", formattedDurationsForFilesToBeSigned); // Add the list of formatted durations for files to be signed
+            System.out.println(groupNames); // Debugging message
 
             return "postlogin";
         } else {
@@ -176,32 +197,53 @@ public class UserController {
         }
     }
     @PostMapping("/send")
-    public String sendFile(@RequestParam("senderUsername") String senderUsername,
-                           @RequestParam("receiverUsername") String receiverUsername,
-                           @RequestParam("filename") String filename,
-                           @RequestParam("expiryDate") @DateTimeFormat(pattern = "yyyy-MM-dd") Date expiryDate,
-                           Model model) {
+    public String sendFile(@RequestParam("username1") String username,
+				            @RequestParam(value = "username12", required = false) String receiverUsername,
+				            @RequestParam(value = "groupName1", required = false) String groupName,
+				            @RequestParam("selectedFileName") String filename1,
+				            @RequestParam("expiryDate") @DateTimeFormat(pattern = "yyyy-MM-dd") Date expiryDate,
+				            Model model) {
+    	String filename = "/" + filename1;
+        username = username.replace(",", "");
+        if (groupName != null && !groupName.isEmpty()) {
+            groupName = groupName.replace(",", "");
+        }
+        System.out.println("Sender Username: " + username); 
+        System.out.println("Receves Username: " + receiverUsername);// Print sender username
+        System.out.println("Receves filename: " + filename);// Print sender username
+        System.out.println("Receves Username: " + groupName);// Print sender username
+
         try {
-            System.out.println("Sender Username: " + senderUsername); // Print sender username
-            System.out.println("Receiver Username: " + receiverUsername); // Print receiver username
+            System.out.println("Sender Username: " + username); // Print sender username
 
-            // Fetch the sender and receiver by their usernames
-            User sender = userService.findByUsername(senderUsername);
-            User receiver = userService.findByUsername(receiverUsername);
-
+            // Fetch the sender by their username
+            User sender = userService.findByUsername(username);
             System.out.println("Sender User: " + sender); // Print sender user object
-            System.out.println("Receiver User: " + receiver); // Print receiver user object
 
-            // Check if both users exist
-            if (sender != null && receiver != null) {
+            List<String> receiverUsernames = new ArrayList<>();
+            if (receiverUsername != null && !receiverUsername.isEmpty()) {
+                receiverUsernames.add(receiverUsername);
+            } else if (groupName != null && !groupName.isEmpty()) {
+                receiverUsernames = groupsService.getGroupMembersByUsernameAndGroupName(username, groupName);
+                if (receiverUsernames == null) {
+                    throw new IllegalArgumentException("Group not found");
+                }
+            }
+
+            System.out.println("Receiver Usernames: " + receiverUsernames); // Print all receiver usernames
+
+            // Check if the sender exists and there is at least one receiver
+            if (sender != null && !receiverUsernames.isEmpty()) {
                 System.out.println("Transferring file..."); // Debugging message
-                blobStorageService.transferFile(sender.getId().toString(), receiver.getId().toString(), filename);
+                for (String receiverId : receiverUsernames) {
+                    blobStorageService.transferFile(sender.getId().toString(), receiverId, filename);
+                }
 
                 System.out.println("Creating signature object..."); // Debugging message
                 // Create a new signature object
                 signature signatureObj = new signature();
                 signatureObj.setUsername1(sender.getUsername());
-                signatureObj.setUsername2(receiver.getUsername());
+                signatureObj.setUsername2(receiverUsernames);
                 signatureObj.setFileName(filename);
                 signatureObj.setIssuanceDate(new Date()); // Current date
                 signatureObj.setExpiryDate(expiryDate);
@@ -225,6 +267,7 @@ public class UserController {
             return "send_error";
         }
     }
+
     @GetMapping("/download")
     public ResponseEntity<byte[]> downloadFile(@RequestParam("username") String username, @RequestParam("filename") String filename) {
         byte[] fileContent = blobStorageService.downloadFile(username, filename);
@@ -243,6 +286,15 @@ public class UserController {
                 .body(fileContent);
     }
 
+    @PostMapping("/addgroup")
+    public ResponseEntity<String> addGroup(@RequestBody Groups group) {
+        try {
+            groupsService.createGroup(group.getOwner(), group.getGroupname(), group.getMembers());
+            return new ResponseEntity<>("Group created successfully", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("upload_error", HttpStatus.BAD_REQUEST); // Replace with the correct error message
+        }
+    }
 
 
 }

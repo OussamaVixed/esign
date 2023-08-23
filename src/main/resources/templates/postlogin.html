@@ -1,115 +1,135 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Upload File</title>
-    <style>
-        body {
-            background-color: #f2f2f2;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: row;
-            height: 100vh;
-        }
-        .sidebar {
-            width: 20%;
-            background-color: #007bff;
-            color: white;
-            padding: 20px;
-            box-shadow: 2px 0px 5px rgba(0,0,0,0.1);
-            overflow-y: auto;
-        }
-        .download-button {
-		    display: inline-block;
-		    padding: 5px 10px;
-		    background-color: #007bff;
-		    color: #ffffff;
-		    text-decoration: none;
-		    border-radius: 5px;
-		    margin-left: 10px;
-		}
-		
-		.download-button:hover {
-		    background-color: #0056b3;
-		}
-
-        .content {
-            width: 80%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        .file-list {
-            list-style: none;
-            padding: 0;
-        }
-        .file-list li {
-            padding: 10px;
-            border-bottom: 1px solid #ffffff;
-        }
-        h2 {
-            margin-bottom: 30px;
-        }
-        form {
-            background-color: #ffffff;
-            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.15);
-            width: 300px;
-            padding: 30px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        input[type="file"], input[type="submit"], button {
-            width: 100%;
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-            margin-bottom: 20px;
-        }
-        input[type="file"] {
-            background-color: #f9f9f9;
-        }
-        input[type="submit"], button {
-            color: #ffffff;
-            background-color: #007bff;
-            cursor: pointer;
-        }
-        input[type="submit"]:hover, button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+    <title>User Interface</title> <!-- Keep this title or change it as per your requirement -->
+    <link rel="stylesheet" th:href="@{css/postlogin.css}">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/js/all.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body>
+	 <nav class="navbar">
+        <div class="navbar-left">
+            <a th:href="@{/}" class="logo">
+                <img th:src="@{/images/logo.png}" alt="Logo">
+            </a>
+        </div>
+        <div class="navbar-right">
+            <a href="#" class="notification-button">
+                <i class="fas fa-bell"></i>
+			<span class="notification-count" th:text="${notifications != null ? #lists.size(notifications) : 0}">0</span>
+            </a>
+            <a href="#" class="settings-button">
+                <i class="fas fa-cog"></i>
+            </a>
+        </div>
+    </nav>
     <div class="sidebar">
-        <h3>Sent Files</h3>
-        <ul class="file-list">
-            <li th:each="signatureInfo, iterStat : ${signatures}">
-			    <span th:text="${signatureInfo.username2}"></span> - <span th:text="${signatureInfo.fileName}"></span>
-			    <span th:if="${signatureInfo.signed}">✅</span> <!-- Green check mark for signed files -->
-			    <a class="download-button" th:if="${signatureInfo.signed and signatureInfo.fileName.endsWith('.pdf')}" th:href="@{'/downloadsigned?username=' + ${signatureInfo.username2} + '&filename=' + ${signatureInfo.fileName}}">Download</a>
-			    <span th:if="${!signatureInfo.signed}" th:text="${formattedDurations[iterStat.index]}"></span> <!-- Formatted duration if not signed -->
-			</li>
-        </ul>
-         <h3>Files to be Signed</h3>
-		 <ul class="file-list">
-		     <li th:each="signatureInfo2, iterStat2 : ${filesToBeSigned}">
-		         <span th:text="${signatureInfo2.username1}"></span> - <span th:text="${signatureInfo2.fileName}"></span>
-		         <span th:if="${!signatureInfo2.signed}" th:text="${formattedDurationsForFilesToBeSigned[iterStat2.index]}"></span>
-		      </li>
-		    </ul>
+	    <a href="#" class="button">Summary</a>
+    	<a href="javascript:void(0);" id="upload-file-button" class="button">Upload File</a>
+    	<a href="javascript:void(0);" id="request-signature-button" class="button">Request Signature</a>
+	    <a href="#" class="button">Files to Sign</a>
+	    <a href="#" class="button">Sign a File</a>
+	    <a href="#" class="button">My Certificates</a>
+	</div>
+	<div id="new-group-popup" style="display: none; position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); border: 1px solid #ccc; padding: 20px; background-color: #f9f9f9;">
+        <label for="new-group-name">Group name:</label>
+        <input type="text" id="new-group-name">
+        <label for="member-name">Member username:</label>
+        <input type="text" id="member-name" onkeydown="if (event.key === 'Enter') addMember()">
+        <div id="members-list"></div>
+        <button type="button" onclick="confirmNewGroup()">Add</button>
+        <button type="button" onclick="document.getElementById('new-group-popup').style.display = 'none'">Cancel</button>
     </div>
-    <div class="content">
-        <h2>Welcome, <span th:text="${username}"></span>! Please upload your file.</h2>
-        <form th:action="@{/upload}" method="post" enctype="multipart/form-data">
-            <input type="file" name="file" required>
-            <input type="hidden" th:value="${username}" name="username">
-            <input type="submit" value="Upload">
-        </form>
-        <form th:action="@{/userfiles}" method="get">
-            <input type="hidden" th:value="${username}" name="username">
-            <button type="submit">View Files</button>
-        </form>
-    </div>
+    <div id="upload-content" class="content" style="display: none;">
+	    <h2>Upload your file.</h2>
+	    <div class="upload-area" id="upload-area">
+	        <form th:action="@{/upload}" method="post" enctype="multipart/form-data" id="upload-form">
+	            <label class="drag-area">
+	                <span class="drag-text">Drag & Drop files here or Browse for it!</span>
+	                <input type="file" name="file" required id="file-input">
+	                <span class="browse-button">Browse</span>
+	            </label>
+	            <input type="hidden" th:value="${username}" name="username">
+	            <input type="submit" value="Upload">
+	        </form>
+	     </div>
+	        <div id="files-content" class="content">
+			    <h2>Your Uploaded Files</h2>
+			    <table class="files-table">
+			        <thead>
+			            <tr>
+			                <th>Filename</th>
+			                <th>Date of Upload</th>
+			                <th>Action</th>
+			            </tr>
+			        </thead>
+			        <tbody>
+			            <th:block th:each="file : ${files}">
+			                <tr>
+			                    <td th:text="${file.fileName}"></td>
+			                    <td th:text="${file.issuanceDate}"></td>
+			                    <td>
+									<a th:href="@{/download?username={username}&filename=/{fileName}(username=${username},fileName=${file.fileName})}" class="download-button">Download</a>
+					            </td>
+			                </tr>
+			            </th:block>
+			        </tbody>
+			    </table>
+			   </div>
+	</div>
+	<div id="request-signature-form" class="content" style="display: none;">
+		<form action="/send" method="post" enctype="multipart/form-data">
+			
+		    <div>
+		        <label for="file">Choose a file:</label>
+		        <select name="file" id="file">
+		            <th:block th:each="file : ${files}">
+		                <option th:value="${file.fileName}" th:text="${file.fileName}"></option>
+		            </th:block>
+		        </select>
+		    </div>
+		    <div>
+		        <label>Send to:</label>
+		        <input type="radio" id="individual" name="send-to" value="individual" onclick="toggleSendTo()">
+		        <label for="individual">Individual</label>
+		        <input type="radio" id="group" name="send-to" value="group" onclick="toggleSendTo()">
+		        <label for="group">Group</label>
+		    </div>
+		    <div id="individual-field" style="display: none;">
+		        <label for="username">Username:</label>
+		        <input type="text" id="username12" name="username12">
+		    </div>
+		    <div id="group-field" style="display: none;">
+		        <label for="group">Choose a group:</label>
+		        <select name="group" id="group-select">
+		            <th:block th:each="group : ${groups}">
+					    <option th:value="${group}" th:text="${group}"></option>
+					</th:block>
+
+		        </select>
+		        <button type="button" id="new-group-button" onclick="createNewGroup()">New Group</button>
+		        <div id="new-group-field" style="display: none;">
+		            <label for="new-group-name">Group name:</label>
+		            <input type="text" id="new-group-name">
+		            <button type="button" onclick="confirmNewGroup()">Create</button>
+		        </div>
+		    </div>
+		    <div>
+		        <label for="expiryDate">Expiry Date:</label>
+		        <input type="date" id="expiryDate" name="expiryDate">
+		    </div>
+		    <input type="text" id="group-name" name="groupName1" style="display:none;">
+		    <input type="hidden" id="username" name="username1" th:value="${username}">
+		    <input type="hidden" id="selected-file-name" name="selectedFileName">
+		    <input type="submit" value="Send">
+		</form>
+	</div>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    var ownerUsername = /*[[${username}]]*/ 'defaultUsername';
+    /*]]>*/
+</script>
+<script src="/js/sidebar.js"></script>
+<script src="/js/upload.js"></script>
 </body>
 </html>

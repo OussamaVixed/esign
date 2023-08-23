@@ -4,6 +4,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
+import java.util.List;
 
 @Document(collection = "signatures")
 public class signature {
@@ -11,7 +12,7 @@ public class signature {
     @Id
     private String id;
     private String username1;
-    private String username2;
+    private List<String> username2;
     private String fileName;
     private String FileNameUID;
     private Date issuanceDate;
@@ -33,14 +34,6 @@ public class signature {
 
     public void setUsername1(String username1) {
         this.username1 = username1;
-    }
-
-    public String getUsername2() {
-        return username2;
-    }
-
-    public void setUsername2(String username2) {
-        this.username2 = username2;
     }
 
     public String getFileName() {
@@ -74,6 +67,16 @@ public class signature {
 	public void setFileNameUID(String fileNameUID) {
 		FileNameUID = fileNameUID;
 	}
+
+	public List<String> getUsername2() {
+		return username2;
+	}
+
+	public void setUsername2(List<String> username2) {
+		this.username2 = username2;
+	}
+
+
 	
 
 

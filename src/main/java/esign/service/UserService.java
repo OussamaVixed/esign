@@ -1,5 +1,7 @@
 package esign.service;
 
+import esign.model.FileUpload;
+import esign.model.Groups;
 import esign.model.User;
 import esign.model.signature;
 import esign.repository.UserRepository;
@@ -7,6 +9,7 @@ import esign.util.KeyUtils;
 import java.security.cert.X509Certificate;
 import java.sql.Date;
 
+import esign.repository.GroupsRepository;
 import esign.repository.SignatureRepository;
 
 import java.io.ByteArrayInputStream;
@@ -24,6 +27,9 @@ import com.itextpdf.text.pdf.security.*;
 import com.itextpdf.text.pdf.security.MakeSignature.CryptoStandard;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +46,8 @@ public class UserService {
 
     @Autowired
     private BlobStorageService blobStorageService;
-
+    @Autowired
+    private GroupsRepository groupRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -321,45 +328,41 @@ public class UserService {
     
 
         
-    public List<SignatureInfo> findSignaturesByUsername1(String username1) {
-        List<signature> signatures = signatureRepository.findByUsername1(username1);
-
-        List<SignatureInfo> result = new ArrayList<>();
-        for (signature sig : signatures) {
-            if (username1.equals(sig.getUsername1())) {
-                long duration = sig.getExpiryDate().getTime() - sig.getIssuanceDate().getTime();
-                boolean isSigned = checkSignatureFileExists(sig.getUsername2(), sig.getFileName());
-                SignatureInfo signatureInfo = new SignatureInfo(sig.getUsername2(), duration, sig.getFileName(), isSigned);
-                result.add(signatureInfo); // Pass isSigned to the constructor
-                System.out.println(signatureInfo); // Print the SignatureInfo object
-            }
-        }
-
-        System.out.println("Signatures by " + username1 + ": " + result); // Print the entire result list
-
-        return result;
-    }
-    public List<SignatureInfo2> findSignaturesByUsername2(String username2) {
-        List<signature> signatures = signatureRepository.findByUsername2(username2);
-
-        List<SignatureInfo2> result2 = new ArrayList<>();
-        for (signature sig : signatures) {
-            if (username2.equals(sig.getUsername2())) {
-                long duration = sig.getExpiryDate().getTime() - sig.getIssuanceDate().getTime();
-                boolean isSigned = checkSignatureFileExists(sig.getUsername2(), sig.getFileName());
-                System.out.println("is the file signed:"+ sig.getFileName() + isSigned);
-                if (!isSigned) { // Only add if the file is not signed
-                    SignatureInfo2 signatureInfo2 = new SignatureInfo2(sig.getUsername1(), duration, sig.getFileName(), isSigned);
-                    result2.add(signatureInfo2);
-                    System.out.println(signatureInfo2); // Print the SignatureInfo object
-                }
-            }
-        }
-
-        System.out.println("Signatures for " + username2 + ": " + result2); // Print the entire result list
-
-        return result2;
-    }
+	/*
+	 * public List<SignatureInfo> findSignaturesByUsername1(String username1) {
+	 * List<signature> signatures = signatureRepository.findByUsername1(username1);
+	 * 
+	 * List<SignatureInfo> result = new ArrayList<>(); for (signature sig :
+	 * signatures) { if (username1.equals(sig.getUsername1())) { long duration =
+	 * sig.getExpiryDate().getTime() - sig.getIssuanceDate().getTime(); boolean
+	 * isSigned = checkSignatureFileExists(sig.getUsername2(), sig.getFileName());
+	 * SignatureInfo signatureInfo = new SignatureInfo(sig.getUsername2(), duration,
+	 * sig.getFileName(), isSigned); result.add(signatureInfo); // Pass isSigned to
+	 * the constructor System.out.println(signatureInfo); // Print the SignatureInfo
+	 * object } }
+	 * 
+	 * System.out.println("Signatures by " + username1 + ": " + result); // Print
+	 * the entire result list
+	 * 
+	 * return result; } public List<SignatureInfo2> findSignaturesByUsername2(String
+	 * username2) { List<signature> signatures =
+	 * signatureRepository.findByUsername2(username2);
+	 * 
+	 * List<SignatureInfo2> result2 = new ArrayList<>(); for (signature sig :
+	 * signatures) { if (username2.equals(sig.getUsername2())) { long duration =
+	 * sig.getExpiryDate().getTime() - sig.getIssuanceDate().getTime(); boolean
+	 * isSigned = checkSignatureFileExists(sig.getUsername2(), sig.getFileName());
+	 * System.out.println("is the file signed:"+ sig.getFileName() + isSigned); if
+	 * (!isSigned) { // Only add if the file is not signed SignatureInfo2
+	 * signatureInfo2 = new SignatureInfo2(sig.getUsername1(), duration,
+	 * sig.getFileName(), isSigned); result2.add(signatureInfo2);
+	 * System.out.println(signatureInfo2); // Print the SignatureInfo object } } }
+	 * 
+	 * System.out.println("Signatures for " + username2 + ": " + result2); // Print
+	 * the entire result list
+	 * 
+	 * return result2; }
+	 */
 
 
     public String formatDuration(long durationMillis) {
@@ -379,7 +382,20 @@ public class UserService {
 
         return formattedDuration.toString();
     }
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
+    public List<FileUpload> getUserFiles1(String userId) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("OwnerUid").is(userId));
+        return mongoTemplate.find(query, FileUpload.class);
+    }
     
+
+
+
+       
+
+
 }
 

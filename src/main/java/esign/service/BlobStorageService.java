@@ -3,7 +3,9 @@ import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobContainerClientBuilder;
 import com.azure.storage.blob.models.BlobItem;
 
+import esign.model.FileUpload;
 import esign.model.User;
+import esign.repository.FileUploadRepository;
 import esign.repository.UserRepository;
 
 import com.azure.core.http.rest.PagedIterable;
@@ -18,6 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -25,6 +28,8 @@ public class BlobStorageService {
 	@Autowired
     private UserRepository userRepository;
     private BlobContainerClient blobContainerClient;
+    @Autowired
+    private FileUploadRepository fileUploadRepository;
 
     public BlobStorageService(@Value("${azure.storage.connection-string}") String connectionString,
                               @Value("${azure.storage.blob-container}") String blobContainer) {
@@ -43,6 +48,16 @@ public class BlobStorageService {
             String blobName = userId + "upload/" + file.getOriginalFilename();
             BlobClient blobClient = blobContainerClient.getBlobClient(blobName);
             blobClient.upload(file.getInputStream(), file.getSize());
+            
+            // Create and populate the FileUpload object
+            FileUpload fileUpload = new FileUpload();
+            fileUpload.setFileName(file.getOriginalFilename());
+            fileUpload.setIssuanceDate(new Date()); // Current date
+            fileUpload.setOwnerUid(userId);
+            
+            // Save the FileUpload object to the MongoDB
+            fileUploadRepository.save(fileUpload);
+            
         } catch (IOException e) {
             throw new RuntimeException("Failed to upload file to blob storage.", e);
         }
