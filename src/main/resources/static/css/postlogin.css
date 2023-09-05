@@ -1,5 +1,6 @@
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: 'Helvetica Neue', sans-serif; /* Changing the font to Helvetica Neue */
+    line-height: 1.6; /* Improving line height */
     margin: 0;
     padding: 0;
     background-color: #f7f7f7;
@@ -261,5 +262,245 @@ body {
 .download-button:hover {
     color: #ffffff;
     background-color: #007BFF;
+}
+#request-signature-form {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: 0.3s ease;
+    margin: 20px auto;
+    max-width: 100%;
+    margin-left: 260px;
+    position: relative;
+    display: block; /* Override the inline style */
+}
+
+/* Styling for form elements */
+#request-signature-form div {
+    margin-bottom: 15px;
+}
+
+#request-signature-form label {
+    display: block;
+    font-weight: bold;
+}
+
+#request-signature-form select,
+#request-signature-form input[type="text"],
+#request-signature-form input[type="date"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+}
+
+#request-signature-form input[type="radio"] {
+    margin-right: 5px;
+    display: inline-block;
+}
+label, input[type="radio"] {
+    display: inline-block;
+}
+
+input[type="radio"] {
+    margin-right: 5px;
+}
+
+
+#request-signature-form input[type="submit"] {
+    background-color: #007BFF;
+    color: #fff;
+    cursor: pointer;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    width: 100%;
+    font-size: 18px;
+}
+
+#request-signature-form input[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+/* Style for new group popup */
+#new-group-popup {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: 0.3s ease;
+    max-width: 300px;
+    display: block; /* Override the inline style */
+}
+
+#new-group-popup input[type="text"],
+#new-group-popup button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
+#new-group-popup button {
+    cursor: pointer;
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+}
+
+#new-group-popup button:hover {
+    background-color: #0056b3;
+}
+#request-signature-form {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: 0.3s ease;
+    margin: 20px auto;
+    max-width: 100%;
+    margin-left: 260px;
+    position: relative;
+    display: block; /* Override the inline style */
+}
+
+/* Styling for form elements */
+#request-signature-form div {
+    margin-bottom: 15px;
+}
+
+#request-signature-form label {
+    display: block;
+    font-weight: bold;
+}
+
+#request-signature-form select,
+#request-signature-form input[type="text"],
+#request-signature-form input[type="date"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+}
+
+#request-signature-form input[type="radio"] {
+    margin-right: 5px;
+}
+
+#request-signature-form input[type="submit"] {
+    background-color: #007BFF;
+    color: #fff;
+    cursor: pointer;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    width: 100%;
+    font-size: 18px;
+}
+
+#request-signature-form input[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+/* Style for new group popup */
+#new-group-popup {
+  display: none; /* Initial state */
+  position: fixed; /* Absolute positioning relative to the viewport */
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border: 1px solid #ccc;
+  padding: 20px;
+  background-color: #f9f9f9;
+  z-index: 1000; /* Ensures the popup is on top */
+}
+
+#new-group-popup input[type="text"],
+#new-group-popup button {
+    width: 90%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
+#new-group-popup button {
+	width: 97%;
+    cursor: pointer;
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+}
+
+#new-group-popup button:hover {
+    background-color: #0056b3;
+}
+.group-container {
+    display: flex;
+    align-items: center;
+}
+
+#group-select {
+    margin-right: 10px;
+}
+
+#new-group-button {
+    cursor: pointer;
+    background-color: #007BFF;
+    color: #fff;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    text-align: center;
+    transition: background-color 0.3s ease;
+}
+
+#new-group-button:hover {
+    background-color: #0056b3;
+}
+/* Style for Signature Status Content */
+#signature-status-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: 0.3s ease;
+    margin: 20px auto;
+    max-width: 100%;
+    margin-left: 260px;
+    position: relative;
+}
+
+.signature-status-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #e0e0e0;
+}
+
+.signature-status-table th, .signature-status-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.signature-status-table th {
+    background-color: #f7f7f7;
+    color: #333;
+}
+
+.signature-status-table tr:last-child td {
+    border-bottom: none;
+}
+
+.status-done, .status-waiting {
+    font-size: 24px;
+}
+
+.status-done {
+    color: #4CAF50;
+}
+
+.status-waiting {
+    color: #FFC107;
 }
 

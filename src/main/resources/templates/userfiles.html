@@ -3,27 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>User Files</title>
-    <style>
-        body { font-family: 'Arial', sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
-        header { background-color: #007BFF; color: #fff; text-align: center; padding: 1rem 0; }
-        ul { list-style: none; padding: 2rem; background: #fff; max-width: 800px; margin: 2rem auto; border-radius: 8px; box-shadow: 0 0 15px rgba(0, 0, 0, 0.1); }
-        li { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1em; padding: 1em; border-bottom: 1px solid #e5e5e5; }
-        li:last-child { border-bottom: none; }
-        .button { padding: 0.5em 1em; margin-right: 5px; border: none; border-radius: 5px; background-color: #007BFF; color: #fff; cursor: pointer; text-decoration: none; transition: background-color 0.3s; }
-        .button:hover { background-color: #0056b3; }
-        .signed { background-color: #ccc; cursor: not-allowed; }
-        .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
-        .buttons { display: flex; gap: 5px; }
-        .send-button { display: inline-block; }
-        .popup { display: none; position: fixed; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; }
-        .popup-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #fff; padding: 2em; border-radius: 8px; }
-    </style>
+    <title>Sign your Files!</title>
+    <link rel="stylesheet" th:href="@{css/userfiles.css}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/js/all.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body>
-    <header>
-        <h2>Welcome, <span th:text="${username}"></span>! Here are your files:</h2>
-    </header>
+    <nav class="navbar">
+        <div class="navbar-left">
+			<a href="#" class="back-button" onclick="goBack()">
+		        <i class="fas fa-chevron-left"></i>
+		    </a>
+            <a th:href="@{/}" class="logo">
+                <img th:src="@{/images/logo.png}" alt="Logo">
+            </a>
+        </div>
+        <div class="navbar-right">
+            <a href="#" class="notification-button">
+                <i class="fas fa-bell"></i>
+			<span class="notification-count" th:text="${notifications != null ? #lists.size(notifications) : 0}">0</span>
+            </a>
+            <a href="#" class="settings-button">
+                <i class="fas fa-cog"></i>
+            </a>
+        </div>
+    </nav>
     <ul th:each="file : ${userFiles}">
         <li>
             <span th:text="${file}"></span>
@@ -42,41 +46,16 @@
                     <a th:href="@{'/download?username=' + ${username} + '&filename=' + ${file}}" class="button">Download</a>
                     <a th:if="${file.endsWith('.pdf') && #lists.contains(signedFiles, file)}"
                        th:href="@{'/downloadsigned?username=' + ${username} + '&filename=' + ${file}}" class="button">Download Signed</a>
-                    <button class="button send-button" th:attr="onclick='showSendPopup(\'' + ${file} + '\')'">Send</button>
                 </div>
-                <div class="popup" th:id="'popup-send-' + ${file}">
-                    <div class="popup-content">
-                        <form th:action="@{/send}" method="post">
-                            <input type="hidden" th:value="${username}" name="senderUsername">
-                            <input type="hidden" th:value="${file}" name="filename">
-                            <label for="receiverUsername">Receiver's username:</label>
-                            <input type="text" name="receiverUsername" required>
-                            <label for="expiryDate">Expiry Date:</label>
-                            <input type="date" name="expiryDate" required>
-                            <input type="submit" value="Send" class="button">
-                        </form>
-                        <button th:attr="onclick='hideSendPopup(\'' + ${file} + '\')'" class="button">Cancel</button>
-                    </div>
-                </div>
+                
             </div>
         </li>
     </ul>
-    <script>
-        function showSendPopup(filename) {
-            var popupId = 'popup-send-' + filename;
-            var popup = document.getElementById(popupId);
-            if (popup) {
-                popup.style.display = 'block';
-            }
-        }
 
-        function hideSendPopup(filename) {
-            var popupId = 'popup-send-' + filename;
-            var popup = document.getElementById(popupId);
-            if (popup) {
-                popup.style.display = 'none';
-            }
-        }
-    </script>
+	<script>
+	    function goBack() {
+	        window.history.back();
+	    }
+	</script>
 </body>
 </html>

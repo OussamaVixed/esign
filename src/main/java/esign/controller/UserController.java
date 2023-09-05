@@ -2,17 +2,17 @@ package esign.controller;
 
 import esign.model.FileUpload;
 import esign.model.Groups;
+import esign.model.SignatureStatus;
 import esign.model.User;
 import esign.service.BlobStorageService;
 import esign.service.GroupsService;
+import esign.service.SignatureService;
 import esign.service.UserService;
-import esign.service.UserService.SignatureInfo;
-import esign.service.UserService.SignatureInfo2;
-
 import java.util.ArrayList;
 import java.util.List;
 import esign.model.signature;
 import esign.repository.SignatureRepository;
+import esign.repository.SignatureStatusRepository;
 
 import java.util.Date;
 import java.util.UUID;
@@ -34,13 +34,16 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Controller
 public class UserController {
+	@Autowired
+	private SignatureStatusRepository signatureStatusRepository;
 	
 	@Autowired
 	private SignatureRepository signatureRepository;
 
     @Autowired
     private UserService userService;
-    
+    @Autowired
+    private SignatureService signatureService;
     @Autowired
     private GroupsService groupsService;
     
@@ -64,7 +67,7 @@ public class UserController {
     @PostMapping("/register")
     public String registerUser(@ModelAttribute("user") User user, Model model) {
         try {
-            User registered = userService.register(user);
+            User registered = userService.register(user);           
             model.addAttribute("user", registered);
             return "registration_success";
         } catch (Exception e) {
@@ -80,42 +83,30 @@ public class UserController {
                             @RequestParam("password") String password,
                             Model model) {
         User user = userService.authenticate(username, password);
+        
+
 
         if (user != null) {
-//            List<SignatureInfo> signatures = userService.findSignaturesByUsername1(username);
+            SignatureStatus signatureStatus = signatureStatusRepository.findBySender(username);
             List<String> formattedDurations = new ArrayList<>();
-//            for (SignatureInfo signatureInfo : signatures) {
-//                long durationMillis = signatureInfo.getDuration();
-//                String formattedDuration = userService.formatDuration(durationMillis);
-//                formattedDurations.add(formattedDuration);
-//            }
-
-			/*
-			 * // Get the list of files to be signed and format their durations
-			 * List<SignatureInfo2> filesToBeSigned =
-			 * userService.findSignaturesByUsername2(username); List<String>
-			 * formattedDurationsForFilesToBeSigned = new ArrayList<>(); for (SignatureInfo2
-			 * signatureInfo2 : filesToBeSigned) { long durationMillis =
-			 * signatureInfo2.getDuration(); String formattedDuration =
-			 * userService.formatDuration(durationMillis);
-			 * formattedDurationsForFilesToBeSigned.add(formattedDuration); }
-			 */
-         // Query the uploaded files for the logged-in user
             List<FileUpload> userFiles = userService.getUserFiles1(user.getId()); // You'll need to create this method
             List<String> groupNames = groupsService.getGroupNamesByUsername(username);
+            List<Boolean> issigned = signatureStatus.getIssigned();
+            List<String> Username2 = signatureStatus.getUsername2();
+            List<Date> sigdate1 = signatureStatus.getSigdate();
+            List<String> filenamess = signatureStatus.getFileid();
+            List<String> sigdate = userService.getTimeRemaining(sigdate1);
+            model.addAttribute("issigned", issigned);
+            model.addAttribute("Username2", Username2);
+            model.addAttribute("sigdate", sigdate);
+            model.addAttribute("filenamess", filenamess);
             model.addAttribute("groups", groupNames);
-
-            // Add the list of uploaded files to the model
             model.addAttribute("files", userFiles);
-            // Add the list of uploaded files to the model
             model.addAttribute("files", userFiles);
             model.addAttribute("username", username);
-//            model.addAttribute("signatures", signatures);
             model.addAttribute("formattedDurations", formattedDurations);
-//            model.addAttribute("filesToBeSigned", filesToBeSigned); // Add the list of files to be signed
-//            model.addAttribute("formattedDurationsForFilesToBeSigned", formattedDurationsForFilesToBeSigned); // Add the list of formatted durations for files to be signed
             System.out.println(groupNames); // Debugging message
-
+            System.out.println(sigdate);
             return "postlogin";
         } else {
             model.addAttribute("loginError", "Invalid username or password");
@@ -186,6 +177,7 @@ public class UserController {
             if (user != null) {
                 userService.signFile(user.getId().toString(), filename);
                 model.addAttribute("message", "File signed successfully");
+                signatureService.updateIssigned(username,filename);
                 return "sign_success";
             } else {
                 model.addAttribute("message", "User not found");
@@ -210,7 +202,7 @@ public class UserController {
         }
         System.out.println("Sender Username: " + username); 
         System.out.println("Receves Username: " + receiverUsername);// Print sender username
-        System.out.println("Receves filename: " + filename);// Print sender username
+        System.out.println("Receves filename: " + filename1);// Print sender username
         System.out.println("Receves Username: " + groupName);// Print sender username
 
         try {
@@ -236,11 +228,14 @@ public class UserController {
             if (sender != null && !receiverUsernames.isEmpty()) {
                 System.out.println("Transferring file..."); // Debugging message
                 for (String receiverId : receiverUsernames) {
-                    blobStorageService.transferFile(sender.getId().toString(), receiverId, filename);
+                	User receiver1 = userService.findByUsername(receiverId);
+                	System.out.println(receiver1.getId().toString());
+                    blobStorageService.transferFile(sender.getId().toString(), receiver1.getId().toString(), filename);
                 }
 
                 System.out.println("Creating signature object..."); // Debugging message
                 // Create a new signature object
+                
                 signature signatureObj = new signature();
                 signatureObj.setUsername1(sender.getUsername());
                 signatureObj.setUsername2(receiverUsernames);
@@ -248,10 +243,21 @@ public class UserController {
                 signatureObj.setIssuanceDate(new Date()); // Current date
                 signatureObj.setExpiryDate(expiryDate);
                 signatureObj.setFileNameUID(UUID.randomUUID().toString()); // Unique ID
-
+                signatureObj.setGroupName(groupName);
                 // Save the signature to the database
                 System.out.println("Saving signature object..."); // Debugging message
                 signatureRepository.save(signatureObj);
+                SignatureStatus signatureStatus = signatureStatusRepository.findBySender(username);
+                for (String receiver : receiverUsernames) {
+                    signatureStatus.getFileid().add(filename);  // Duplicate filename
+                    signatureStatus.getIssigned().add(false);    // Duplicate false (0) for issigned
+                    signatureStatus.getSigdate().add(expiryDate);// Duplicate expiryDate for sigdate
+                    signatureStatus.getUsername2().add(receiver); // Add each username from receiverUsernames
+                    signatureStatus.getSigID().add(signatureObj.getId());  // Duplicate signatureObj ID
+                }
+                
+                // Save the updated object back into the database
+                signatureStatusRepository.save(signatureStatus);
 
                 model.addAttribute("message", "File sent successfully");
                 return "send_success";
@@ -295,6 +301,7 @@ public class UserController {
             return new ResponseEntity<>("upload_error", HttpStatus.BAD_REQUEST); // Replace with the correct error message
         }
     }
+    
 
 
 }

@@ -2,15 +2,16 @@ package esign.service;
 
 import esign.model.FileUpload;
 import esign.model.Groups;
+import esign.model.SignatureStatus;
 import esign.model.User;
 import esign.model.signature;
 import esign.repository.UserRepository;
 import esign.util.KeyUtils;
 import java.security.cert.X509Certificate;
-import java.sql.Date;
-
+import java.util.Date;
 import esign.repository.GroupsRepository;
 import esign.repository.SignatureRepository;
+import esign.repository.SignatureStatusRepository;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -43,14 +44,15 @@ public class UserService {
     private CertificateUtils certificateUtils;
     @Autowired
     private UserRepository userRepository;
-
+    
     @Autowired
     private BlobStorageService blobStorageService;
     @Autowired
     private GroupsRepository groupRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
-
+    @Autowired
+    private SignatureStatusRepository signatureStatusRepository;
     @Autowired
     private UserCertificateService userCertificateService;
 
@@ -71,7 +73,17 @@ public class UserService {
         // Generate and upload a certificate for the registered user
         String userId = registeredUser.getId().toString();
         userCertificateService.generateAndUploadUserCertificate(userId);
+        
+        SignatureStatus signaturestatObj = new SignatureStatus();
+        signaturestatObj.setSender(registeredUser.getUsername());
+        	signaturestatObj.setFileid(new ArrayList<>());
+        	signaturestatObj.setIssigned(new ArrayList<>());
+        	signaturestatObj.setSigdate(new ArrayList<>());
+        	signaturestatObj.setUsername2(new ArrayList<>());
+        	signaturestatObj.setSigID(new ArrayList<>());
 
+        signatureStatusRepository.save(signaturestatObj);
+        
         return registeredUser;
     }
 
@@ -244,126 +256,19 @@ public class UserService {
 
             List<String> signatureFiles = blobStorageService.listUserFiles(signaturesFolder);
 
-            // Debug prints
-            System.out.println("Signature Files: " + signatureFiles);
+         
             String targetFile = filename + ".sig";
             
             String targetFile2 = filename.substring(0, filename.length() - 4) + "_signed.pdf";
 
-            System.out.println("Looking for: " + targetFile + " or " + targetFile2);
+           
 
             return signatureFiles.contains(targetFile) || signatureFiles.contains(targetFile2);
         }
         return false; // return false if the user does not exist
     }
 
-    public class SignatureInfo {
-        private String username2;
-        private long duration; // in milliseconds
-        private String fileName;
-        private boolean signed;
-
-        // Constructor
-        public SignatureInfo(String username2, long duration, String fileName, boolean signed) {
-            this.username2 = username2;
-            this.duration = duration;
-            this.fileName = fileName;
-            this.signed = signed;
-        }
-
-        public String getUsername2() {
-            return username2;
-        }
-
-        public long getDuration() {
-            return duration;
-        }
-
-        public String getFileName() {
-            return fileName;
-        }
-
-        public boolean isSigned() {
-            return signed;
-        }
-
-        public void setSigned(boolean signed) {
-            this.signed = signed;
-        }
-    }
-    public class SignatureInfo2 {
-        private String username1;
-        private long duration; // in milliseconds
-        private String fileName;
-        private boolean signed;
-
-        // Constructor
-        public SignatureInfo2(String username1, long duration, String fileName, boolean signed) {
-            this.username1 = username1;
-            this.duration = duration;
-            this.fileName = fileName;
-            this.signed = signed;
-        }
-
-        public String getUsername1() {
-            return username1;
-        }
-
-        public long getDuration() {
-            return duration;
-        }
-
-        public String getFileName() {
-            return fileName;
-        }
-
-        public boolean isSigned() {
-            return signed;
-        }
-
-        public void setSigned(boolean signed) {
-            this.signed = signed;
-        }
-    }
     
-
-        
-	/*
-	 * public List<SignatureInfo> findSignaturesByUsername1(String username1) {
-	 * List<signature> signatures = signatureRepository.findByUsername1(username1);
-	 * 
-	 * List<SignatureInfo> result = new ArrayList<>(); for (signature sig :
-	 * signatures) { if (username1.equals(sig.getUsername1())) { long duration =
-	 * sig.getExpiryDate().getTime() - sig.getIssuanceDate().getTime(); boolean
-	 * isSigned = checkSignatureFileExists(sig.getUsername2(), sig.getFileName());
-	 * SignatureInfo signatureInfo = new SignatureInfo(sig.getUsername2(), duration,
-	 * sig.getFileName(), isSigned); result.add(signatureInfo); // Pass isSigned to
-	 * the constructor System.out.println(signatureInfo); // Print the SignatureInfo
-	 * object } }
-	 * 
-	 * System.out.println("Signatures by " + username1 + ": " + result); // Print
-	 * the entire result list
-	 * 
-	 * return result; } public List<SignatureInfo2> findSignaturesByUsername2(String
-	 * username2) { List<signature> signatures =
-	 * signatureRepository.findByUsername2(username2);
-	 * 
-	 * List<SignatureInfo2> result2 = new ArrayList<>(); for (signature sig :
-	 * signatures) { if (username2.equals(sig.getUsername2())) { long duration =
-	 * sig.getExpiryDate().getTime() - sig.getIssuanceDate().getTime(); boolean
-	 * isSigned = checkSignatureFileExists(sig.getUsername2(), sig.getFileName());
-	 * System.out.println("is the file signed:"+ sig.getFileName() + isSigned); if
-	 * (!isSigned) { // Only add if the file is not signed SignatureInfo2
-	 * signatureInfo2 = new SignatureInfo2(sig.getUsername1(), duration,
-	 * sig.getFileName(), isSigned); result2.add(signatureInfo2);
-	 * System.out.println(signatureInfo2); // Print the SignatureInfo object } } }
-	 * 
-	 * System.out.println("Signatures for " + username2 + ": " + result2); // Print
-	 * the entire result list
-	 * 
-	 * return result2; }
-	 */
-
 
     public String formatDuration(long durationMillis) {
         long totalMinutes = durationMillis / (1000 * 60);
@@ -390,12 +295,24 @@ public class UserService {
         query.addCriteria(Criteria.where("OwnerUid").is(userId));
         return mongoTemplate.find(query, FileUpload.class);
     }
+    public List<String> getTimeRemaining(List<Date> targetDates) {
+        List<String> timeRemainingList = new ArrayList<>();
+        Date currentDate = new Date();
+
+        for (Date targetDate : targetDates) {
+            long durationMillis = targetDate.getTime() - currentDate.getTime();
+            if (durationMillis > 0) {
+                timeRemainingList.add(formatDuration(durationMillis));
+            } else {
+                timeRemainingList.add("EXPIRED!");
+            }
+        }
+
+        return timeRemainingList;
+    }
     
 
-
-
-       
-
+  
 
 }
 

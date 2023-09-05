@@ -17,10 +17,18 @@ public class signature {
     private String FileNameUID;
     private Date issuanceDate;
     private Date expiryDate;
-
+    private String GroupName;
     // Getters and Setters
 
-    public String getId() {
+    public String getGroupName() {
+		return GroupName;
+	}
+
+	public void setGroupName(String groupName) {
+		GroupName = groupName;
+	}
+
+	public String getId() {
         return id;
     }
 

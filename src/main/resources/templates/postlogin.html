@@ -24,10 +24,10 @@
         </div>
     </nav>
     <div class="sidebar">
-	    <a href="#" class="button">Summary</a>
+	    <a href="javascript:void(0);" id="summary-button" class="button">Summary</a>
     	<a href="javascript:void(0);" id="upload-file-button" class="button">Upload File</a>
     	<a href="javascript:void(0);" id="request-signature-button" class="button">Request Signature</a>
-	    <a href="#" class="button">Files to Sign</a>
+		<a th:href="@{/userfiles(username=${username})}" class="button">Files to Sign</a>
 	    <a href="#" class="button">Sign a File</a>
 	    <a href="#" class="button">My Certificates</a>
 	</div>
@@ -40,6 +40,36 @@
         <button type="button" onclick="confirmNewGroup()">Add</button>
         <button type="button" onclick="document.getElementById('new-group-popup').style.display = 'none'">Cancel</button>
     </div>
+    <div id="signature-status-content" class="content" style="display: none;">
+	    <h2>Signature Status</h2>
+	    <table class="signature-status-table">
+	        <thead>
+	            <tr>
+	                <th>Username</th>
+	                <th>Filename</th>
+	                <th>Expires</th>
+	                <th>Status</th>
+	            </tr>
+	        </thead>
+	        <tbody>
+	            <th:block th:each="i, iterStat : ${issigned}">
+	                <tr>
+	                    <td th:text="${Username2[iterStat.index]}"></td>
+	                    <td th:text="${filenamess[iterStat.index]}"></td>
+	                    <td th:text="${sigdate[iterStat.index]}"></td>
+	                    <td>
+	                        <span th:if="${i}">
+	                            <i class="fas fa-check-circle status-done"></i>
+	                        </span>
+	                        <span th:unless="${i}">
+	                            <i class="fas fa-clock status-waiting"></i>
+	                        </span>
+	                    </td>
+	                </tr>
+	            </th:block>
+	        </tbody>
+	    </table>
+	</div>
     <div id="upload-content" class="content" style="display: none;">
 	    <h2>Upload your file.</h2>
 	    <div class="upload-area" id="upload-area">
@@ -89,25 +119,26 @@
 		        </select>
 		    </div>
 		    <div>
-		        <label>Send to:</label>
-		        <input type="radio" id="individual" name="send-to" value="individual" onclick="toggleSendTo()">
-		        <label for="individual">Individual</label>
-		        <input type="radio" id="group" name="send-to" value="group" onclick="toggleSendTo()">
-		        <label for="group">Group</label>
-		    </div>
-		    <div id="individual-field" style="display: none;">
+			    <label>Send to:</label>
+			    <input type="radio" id="individual" name="send-to" value="individual" onclick="toggleSendTo()" style="display: inline-block; margin-right: 5px;">
+			    <label for="individual" style="display: inline-block;">Individual</label>
+			    <input type="radio" id="group" name="send-to" value="group" onclick="toggleSendTo()" style="display: inline-block; margin-right: 5px;">
+			    <label for="group" style="display: inline-block;">Group</label>
+			</div>
+					    <div id="individual-field" style="display: none;">
 		        <label for="username">Username:</label>
 		        <input type="text" id="username12" name="username12">
 		    </div>
 		    <div id="group-field" style="display: none;">
 		        <label for="group">Choose a group:</label>
+		        <div class="group-container">
 		        <select name="group" id="group-select">
 		            <th:block th:each="group : ${groups}">
 					    <option th:value="${group}" th:text="${group}"></option>
 					</th:block>
-
 		        </select>
 		        <button type="button" id="new-group-button" onclick="createNewGroup()">New Group</button>
+		        </div>
 		        <div id="new-group-field" style="display: none;">
 		            <label for="new-group-name">Group name:</label>
 		            <input type="text" id="new-group-name">
