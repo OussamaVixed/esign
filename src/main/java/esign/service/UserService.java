@@ -7,6 +7,8 @@ import esign.model.User;
 import esign.model.signature;
 import esign.repository.UserRepository;
 import esign.util.KeyUtils;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import esign.repository.GroupsRepository;
@@ -15,12 +17,15 @@ import esign.repository.SignatureStatusRepository;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.Signature;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.pdf.AcroFields;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfSignatureAppearance;
 import com.itextpdf.text.pdf.PdfStamper;
@@ -123,7 +128,7 @@ public class UserService {
 
     
 
-    public void signFile(String userId, String fileName) {
+    public void signFile(String userId, String fileName , String Username) {
         try {
             // Get the blob client for the user's private key
             String userFolder1 = userId + "upload";
@@ -140,7 +145,7 @@ public class UserService {
             // Check if the file is a PDF
             if (fileName.toLowerCase().endsWith(".pdf")) {
                 // Sign the PDF file using the new method
-                signPdfFileWithPrivateKey(userId, fileName, fileData); // Renamed method for PDF signing
+                signPdfFileWithPrivateKey(userId, fileName, fileData , Username); // Renamed method for PDF signing
             } else {
                 // Sign the file using the old method
                 signFileWithPrivateKey(userId, fileName, fileData);
@@ -189,7 +194,7 @@ public class UserService {
             throw new RuntimeException("Failed to sign the data.", e);
         }
     }
-    private void signPdfFileWithPrivateKey(String userId, String fileName, byte[] dataToSign) {
+    private void signPdfFileWithPrivateKey(String userId, String fileName, byte[] dataToSign, String Username) {
         try {
             // Get the blob client for the user's private key
             String userFolder3 = userId + "upload";
@@ -214,8 +219,8 @@ public class UserService {
 
             // Create the signature appearance
             PdfSignatureAppearance appearance = stamper.getSignatureAppearance();
-            appearance.setReason("Signed by " + userId);
-            appearance.setLocation("Location");
+            appearance.setReason("Signed by " + Username);
+            appearance.setLocation("Oujda");
             appearance.setVisibleSignature(new Rectangle(72, 732, 144, 780), 1, "Signature");
 
             // Configure the digital signature
@@ -310,7 +315,57 @@ public class UserService {
 
         return timeRemainingList;
     }
-    
+    public boolean verifyPdfSignature(byte[] pdfData, String username) {
+        try {
+            // Load the PDF
+            PdfReader reader = new PdfReader(new ByteArrayInputStream(pdfData));
+
+            // Get the AcroFields
+            AcroFields af = reader.getAcroFields();
+
+            // Fetch the signature names
+            List<String> names = af.getSignatureNames();
+            
+            User user1 = findByUsername(username);
+            // Fetch userId from username (assuming you have a method for this)
+            String userId = user1.getId();  // Implement this method
+
+            // Fetch the certificate from blob storage
+            String certBlobName = userId + "upload/" + userId + ".crt";
+            BlobClient certBlobClient = blobStorageService.getBlobContainerClient().getBlobClient(certBlobName);
+
+            ByteArrayOutputStream certOutputStream = new ByteArrayOutputStream();
+            certBlobClient.download(certOutputStream);
+            byte[] certBytes = certOutputStream.toByteArray();
+
+            // Convert bytes to X509Certificate
+            CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+            X509Certificate signerCertificate = (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(certBytes));
+
+            // Loop over the signatures and verify
+            for (String name : names) {
+                PdfPKCS7 pkcs7 = af.verifySignature(name);
+
+                // Retrieve the signer's certificate from the signature
+                Certificate[] certificates = pkcs7.getCertificates();
+
+                // Check if the public key of the signer's certificate matches
+                // the public key contained in the signature
+                if (pkcs7.verify()) {
+                    // Verify if the certificate used for signing matches the provided certificate
+                    if (signerCertificate.equals(certificates[0])) {
+                        return true;
+                    }
+                }
+            }
+        } catch (IOException | GeneralSecurityException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to verify PDF signature.", e);
+        }
+
+        return false;
+    }
+
 
   
 

@@ -503,4 +503,113 @@ input[type="radio"] {
 .status-waiting {
     color: #FFC107;
 }
+#pdf-check-content {
+    background: #fff;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+#pdf-check-content h2 {
+    font-size: 36px;
+    color: #333;
+    margin-bottom: 30px;
+}
+
+#file1-upload-content {
+    background: #fff;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+#file1-upload-content h2 {
+    font-size: 36px;
+    color: #333;
+    margin-bottom: 30px;
+}
+
+.file1-upload-area {
+    border: 2px dashed #007BFF;
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+}
+
+.file1-drag-area {
+    position: relative;
+    cursor: pointer;
+}
+
+.file1-drag-text {
+    color: #666;
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.file1-browse-button,
+#file1-sign-button {
+  display: inline-block;
+  padding: 12px 24px;
+  margin: 10px;
+  border-radius: 25px;  /* Moderate rounded corners */
+  font-size: 18px;
+  text-align: center;
+  cursor: pointer;
+  background-color: #007BFF;
+  color: white;
+  border: none;  /* Removes any default border */
+  outline: none;  /* Removes focus outline */
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.file1-browse-button:hover,
+#file1-sign-button:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+}
+.centered-heading {
+  text-align: center;
+  margin-bottom: 2rem;
+  overflow: hidden; /* Optional, in case of overshooting */
+}
+
+#sign-text {
+  display: inline-block;
+  margin: 0;
+  font-size: 36px;
+  color: #333;
+  opacity: 0; /* initial state */
+  transform: scale(0.7); /* initial scale */
+  transition: all 0.8s cubic-bezier(0.165, 0.84, 0.44, 1); /* easeOutQuart easing for smooth finish */
+  animation: zoom-in-fade-in 1s cubic-bezier(0.165, 0.84, 0.44, 1) 0.5s forwards;
+}
+
+@keyframes zoom-in-fade-in {
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.file1-drag-success {
+    border: 2px solid #28a745; /* Change the border color to green */
+    animation: pulse 1s ease-in-out; /* Add a pulse animation */
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+
+
 

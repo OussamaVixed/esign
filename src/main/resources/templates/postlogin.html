@@ -28,8 +28,8 @@
     	<a href="javascript:void(0);" id="upload-file-button" class="button">Upload File</a>
     	<a href="javascript:void(0);" id="request-signature-button" class="button">Request Signature</a>
 		<a th:href="@{/userfiles(username=${username})}" class="button">Files to Sign</a>
-	    <a href="#" class="button">Sign a File</a>
-	    <a href="#" class="button">My Certificates</a>
+	    <a href="javascript:void(0);" id="sign-file-button" class="button">Sign a File</a>
+	    <a href="javascript:void(0);" id="check-pdf-button" class="button">Check PDF</a>
 	</div>
 	<div id="new-group-popup" style="display: none; position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); border: 1px solid #ccc; padding: 20px; background-color: #f9f9f9;">
         <label for="new-group-name">Group name:</label>
@@ -106,6 +106,38 @@
 			        </tbody>
 			    </table>
 			   </div>
+	</div>
+	<div id="file1-upload-content" class="content" style="display: none;">
+	    <div class="centered-heading">
+		  <h2 id="sign-text">Sign your file</h2>
+		</div>
+	    <div class="file1-upload-area" id="file1-upload-area">
+	        <form th:action="@{/upload1}" method="post" enctype="multipart/form-data" id="file1-upload-form">
+	            <div class="file1-drag-area">
+	                <span class="file1-drag-text">Drag & Drop files here or</span>
+	                <span class="file1-browse-button">Browse</span>
+	                <input type="file" name="file1" required id="file1-input" style="display: none;">
+	            </div>
+	            <input type="hidden" th:value="${username}" name="username2">
+	            <button type="submit" class="submit-button" id="file1-sign-button">SIGN</button>
+	        </form>
+	    </div>
+	</div>
+	<div id="pdf-check-content" class="content" style="display: none;">
+	    <div class="centered-heading">
+		  <h2 id="sign-text">Check Pdf Signature</h2>
+		</div>
+	    <div class="file1-upload-area" id="file1-upload-area">
+	        <form th:action="@{/upload2}" method="post" enctype="multipart/form-data" id="file1-upload-form">
+	            <div class="file1-drag-area">
+	                <span class="file1-drag-text">Drag & Drop files here or</span>
+	                <span class="file1-browse-button">Browse</span>
+	                <input type="file" name="file1" required id="file1-input" style="display: none;">
+	            </div>
+	            <input type="hidden" th:value="${username}" name="username2">
+	            <button type="submit" class="submit-button" id="file1-sign-button">SIGN</button>
+	        </form>
+	    </div>
 	</div>
 	<div id="request-signature-form" class="content" style="display: none;">
 		<form action="/send" method="post" enctype="multipart/form-data">

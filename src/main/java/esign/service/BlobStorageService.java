@@ -2,6 +2,9 @@ package esign.service;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobContainerClientBuilder;
 import com.azure.storage.blob.models.BlobItem;
+import com.itextpdf.text.pdf.AcroFields;
+import com.itextpdf.text.pdf.PdfReader;
+import com.itextpdf.text.pdf.security.PdfPKCS7;
 
 import esign.model.FileUpload;
 import esign.model.User;
@@ -48,7 +51,8 @@ public class BlobStorageService {
             String blobName = userId + "upload/" + file.getOriginalFilename();
             BlobClient blobClient = blobContainerClient.getBlobClient(blobName);
             blobClient.upload(file.getInputStream(), file.getSize());
-            
+            System.out.println("fuile is " + blobName); // Debug print
+
             // Create and populate the FileUpload object
             FileUpload fileUpload = new FileUpload();
             fileUpload.setFileName(file.getOriginalFilename());
@@ -163,8 +167,67 @@ public class BlobStorageService {
             throw new RuntimeException("User not found.");
         }
     }
+    public void simpleUploadFile(String userId, MultipartFile file) {
+        try {
+            String blobName = userId + "upload/" + file.getOriginalFilename();
+            BlobClient blobClient = blobContainerClient.getBlobClient(blobName);
+            blobClient.upload(file.getInputStream(), file.getSize());
 
+            System.out.println("File uploaded to: " + blobName);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to upload file to blob storage.", e);
+        }
+    }
+    public void simpleDeleteFile(String userId, String fileName) {
+        try {
+            String blobName = userId + "upload/" + fileName;
+            BlobClient blobClient = blobContainerClient.getBlobClient(blobName);
+            
+            if (blobClient.exists()) {
+                blobClient.delete();
+                System.out.println("File deleted: " + blobName);
+            } else {
+                System.out.println("File does not exist: " + blobName);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete file from blob storage.", e);
+        }
+    }
+    public String getSignerUsernameFromPdfBlob(String userId, String blobName) {
+        String signerUsername = null;
 
+        try {
+            // Get BlobClient to download PDF from Azure Blob Storage
+            BlobClient blobClient = blobContainerClient.getBlobClient(userId + "upload" + blobName);
+            
+            // Download PDF to a ByteArrayOutputStream
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            blobClient.download(outputStream);
+            
+            // Read PDF from the downloaded bytes
+            PdfReader reader = new PdfReader(new ByteArrayInputStream(outputStream.toByteArray()));
+            AcroFields af = reader.getAcroFields();
+            List<String> names = af.getSignatureNames();
+
+            for (String name : names) {
+                PdfPKCS7 pkcs7 = af.verifySignature(name);
+                String reason = pkcs7.getReason();
+
+                if (reason != null && reason.startsWith("Signed by ")) {
+                    signerUsername = reason.substring("Signed by ".length());
+                    break;
+                }
+            }
+
+            reader.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to extract signer's username from the PDF. Cause: " + e.getMessage(), e);
+        }
+        
+        return signerUsername;
+    }
 
 
 

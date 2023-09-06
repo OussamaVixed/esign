@@ -8,6 +8,8 @@ import esign.service.BlobStorageService;
 import esign.service.GroupsService;
 import esign.service.SignatureService;
 import esign.service.UserService;
+import esign.util.Multitobytes;
+
 import java.util.ArrayList;
 import java.util.List;
 import esign.model.signature;
@@ -36,7 +38,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserController {
 	@Autowired
 	private SignatureStatusRepository signatureStatusRepository;
-	
+	@Autowired
+	private Multitobytes multitobytes;
 	@Autowired
 	private SignatureRepository signatureRepository;
 
@@ -115,6 +118,96 @@ public class UserController {
     }
 
 
+    @PostMapping("/upload1")
+    public String uploadFile1(@RequestParam("file1") MultipartFile file,
+                             @RequestParam("username2") String username,
+                             Model model) {
+        System.out.println(file);
+        System.out.println(username);
+        
+        String filename = "/" + file.getOriginalFilename();  // Get the filename here as a String
+
+        try {
+            // Fetch the user by their username
+            User user = userService.findByUsername(username);
+
+            // Check if a user with the provided username exists
+            if (user != null) {
+                // Upload the file using the user's ID instead of the username
+                blobStorageService.uploadFile(user.getId(), file);
+                model.addAttribute("message", "File uploaded successfully");
+
+                // Sign the uploaded file
+                userService.signFile(user.getId().toString(), filename, username);
+                model.addAttribute("message", "File signed successfully");
+                
+                // Update signature status
+                signatureService.updateIssigned(username, filename);
+                
+                return "sign_success";
+            } else {
+                model.addAttribute("message", "User not found");
+                return "upload_error";
+            }
+        } catch (Exception e) {
+            model.addAttribute("message", "Failed to upload and sign file");
+            return "upload_error";
+        }
+    }
+
+    @PostMapping("/upload2")
+    public String uploadFile2(@RequestParam("file1") MultipartFile file,
+                              @RequestParam("username2") String username,
+                              Model model) {
+        try {
+            System.out.println("Entering the uploadFile2 method.");
+
+            // Fetch the user by their username
+            User user = userService.findByUsername(username);
+            System.out.println("Fetched user by username: " + username);
+
+            // Check if a user with the provided username exists
+            if (user != null) {
+                System.out.println("User exists.");
+
+                // Upload the file using the user's ID
+                blobStorageService.simpleUploadFile(user.getId(), file);
+                System.out.println("File uploaded.");
+
+                // Get the filename as a String
+                String filename = "/" + file.getOriginalFilename();
+                System.out.println("File name: " + filename);
+
+                // Retrieve the signer's username from the PDF
+                String signerUsername = blobStorageService.getSignerUsernameFromPdfBlob(user.getId(), filename);
+                System.out.println("Signer Username: " + signerUsername);
+
+                // Convert the MultipartFile to byte array
+                byte[] pdfData = multitobytes.multipartFileToByteArray(file);
+                System.out.println("Converted MultipartFile to byte array.");
+
+                // Verify the PDF signature
+                if (userService.verifyPdfSignature(pdfData, signerUsername)) {
+                    System.out.println("File and signature verified successfully.");
+                    model.addAttribute("message", "File and signature verified successfully");
+                    return "sign_success";
+                } else {
+                    System.out.println("Signature verification failed.");
+                    model.addAttribute("message", "Signature verification failed");
+                    return "sign_error";
+                }
+            } else {
+                System.out.println("User not found.");
+                model.addAttribute("message", "User not found");
+                return "upload_error";
+            }
+        } catch (Exception e) {
+            System.out.println("Exception occurred: " + e.getMessage());
+            model.addAttribute("message", "Failed to upload and verify file");
+            return "upload_error";
+        }
+    }
+
 
 
 
@@ -175,7 +268,7 @@ public class UserController {
             User user = userService.findByUsername(username);
             // Check if a user with the provided username exists
             if (user != null) {
-                userService.signFile(user.getId().toString(), filename);
+                userService.signFile(user.getId().toString(), filename,username);
                 model.addAttribute("message", "File signed successfully");
                 signatureService.updateIssigned(username,filename);
                 return "sign_success";
