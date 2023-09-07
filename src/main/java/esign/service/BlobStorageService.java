@@ -180,7 +180,7 @@ public class BlobStorageService {
     }
     public void simpleDeleteFile(String userId, String fileName) {
         try {
-            String blobName = userId + "upload/" + fileName;
+            String blobName = userId + "upload" + fileName;
             BlobClient blobClient = blobContainerClient.getBlobClient(blobName);
             
             if (blobClient.exists()) {
@@ -199,11 +199,11 @@ public class BlobStorageService {
         try {
             // Get BlobClient to download PDF from Azure Blob Storage
             BlobClient blobClient = blobContainerClient.getBlobClient(userId + "upload" + blobName);
-            
+
             // Download PDF to a ByteArrayOutputStream
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             blobClient.download(outputStream);
-            
+
             // Read PDF from the downloaded bytes
             PdfReader reader = new PdfReader(new ByteArrayInputStream(outputStream.toByteArray()));
             AcroFields af = reader.getAcroFields();
@@ -213,9 +213,14 @@ public class BlobStorageService {
                 PdfPKCS7 pkcs7 = af.verifySignature(name);
                 String reason = pkcs7.getReason();
 
-                if (reason != null && reason.startsWith("Signed by ")) {
-                    signerUsername = reason.substring("Signed by ".length());
-                    break;
+                if (reason != null && reason.matches("^Signed by .* at .*")) {
+                    // Extract the username from the reason string
+                    int startIndex = reason.indexOf("Signed by ") + "Signed by ".length();
+                    int endIndex = reason.indexOf(" at ");
+                    if (startIndex != -1 && endIndex != -1) {
+                        signerUsername = reason.substring(startIndex, endIndex);
+                        break;
+                    }
                 }
             }
 
@@ -225,8 +230,54 @@ public class BlobStorageService {
             e.printStackTrace();
             throw new RuntimeException("Failed to extract signer's username from the PDF. Cause: " + e.getMessage(), e);
         }
-        
+
         return signerUsername;
+    }
+
+
+    public String getSignatureDateFromPdfBlob(String userId, String blobName) {
+        String signatureDate = null;
+
+        try {
+            // Get BlobClient to download PDF from Azure Blob Storage
+            BlobClient blobClient = blobContainerClient.getBlobClient(userId + "upload" + blobName);
+            System.out.println("Downloading PDF from Blob Storage: " + blobName);
+
+            // Download PDF to a ByteArrayOutputStream
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            blobClient.download(outputStream);
+            System.out.println("Downloaded PDF successfully.");
+
+            // Read PDF from the downloaded bytes
+            PdfReader reader = new PdfReader(new ByteArrayInputStream(outputStream.toByteArray()));
+            AcroFields af = reader.getAcroFields();
+            List<String> names = af.getSignatureNames();
+
+            for (String name : names) {
+                PdfPKCS7 pkcs7 = af.verifySignature(name);
+                String reason = pkcs7.getReason();
+                System.out.println("Signature Reason: " + reason);
+
+                if (reason != null && reason.contains("Signed by ")) {
+                    // Extract the date portion from the reason string
+                    int startIndex = reason.indexOf(" at ");
+                    if (startIndex != -1) {
+                        signatureDate = reason.substring(startIndex + 4);
+                        System.out.println("Extracted Signature Date: " + signatureDate);
+                        break;
+                    }
+                }
+            }
+
+            reader.close();
+            System.out.println("Closed PDF reader.");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to extract signature date from the PDF. Cause: " + e.getMessage(), e);
+        }
+
+        return signatureDate;
     }
 
 

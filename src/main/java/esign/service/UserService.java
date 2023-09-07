@@ -197,6 +197,7 @@ public class UserService {
     private void signPdfFileWithPrivateKey(String userId, String fileName, byte[] dataToSign, String Username) {
         try {
             // Get the blob client for the user's private key
+            Date currentDate = new Date();
             String userFolder3 = userId + "upload";
             String keyBlobName1 = userId + ".key";
             BlobClient keyBlobClient = blobStorageService.getBlobContainerClient().getBlobClient(userFolder3 + "/" + keyBlobName1);
@@ -219,7 +220,7 @@ public class UserService {
 
             // Create the signature appearance
             PdfSignatureAppearance appearance = stamper.getSignatureAppearance();
-            appearance.setReason("Signed by " + Username);
+            appearance.setReason("Signed by " + Username + " at " + currentDate);
             appearance.setLocation("Oujda");
             appearance.setVisibleSignature(new Rectangle(72, 732, 144, 780), 1, "Signature");
 
@@ -366,7 +367,7 @@ public class UserService {
         return false;
     }
 
-
+    
   
 
 }

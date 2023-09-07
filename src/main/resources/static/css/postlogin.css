@@ -503,12 +503,18 @@ input[type="radio"] {
 .status-waiting {
     color: #FFC107;
 }
+
+#file1-upload-content,
 #pdf-check-content {
     background: #fff;
     padding: 40px;
     border-radius: 20px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+}
+#file1-upload-content:hover,
+#pdf-check-content:hover {
+    border: 2px dashed rgba(0, 123, 255, 0.5); /* Faded blue border on hover */
 }
 
 #pdf-check-content h2 {
@@ -517,7 +523,8 @@ input[type="radio"] {
     margin-bottom: 30px;
 }
 
-#file1-upload-content {
+#file1-upload-content,
+#pdf-check-content { /* Apply the same styles to both elements */
     background: #fff;
     padding: 40px;
     border-radius: 20px;
@@ -525,77 +532,82 @@ input[type="radio"] {
     transition: all 0.3s ease;
 }
 
-#file1-upload-content h2 {
+#file1-upload-content h2,
+#pdf-check-content h2 { /* Apply the same styles to both h2 elements */
     font-size: 36px;
     color: #333;
     margin-bottom: 30px;
 }
 
-.file1-upload-area {
+.file1-upload-area,
+.file2-upload-area { /* Apply the same styles to both .fileX-upload-area elements */
     border: 2px dashed #007BFF;
     padding: 40px;
     border-radius: 20px;
     text-align: center;
 }
 
-.file1-drag-area {
+.file1-drag-area,
+.file2-drag-area { /* Apply the same styles to both .fileX-drag-area elements */
     position: relative;
     cursor: pointer;
 }
 
-.file1-drag-text {
+.file1-drag-text,
+.file2-drag-text { /* Apply the same styles to both .fileX-drag-text elements */
     color: #666;
     font-size: 18px;
     margin-bottom: 20px;
 }
 
 .file1-browse-button,
-#file1-sign-button {
-  display: inline-block;
-  padding: 12px 24px;
-  margin: 10px;
-  border-radius: 25px;  /* Moderate rounded corners */
-  font-size: 18px;
-  text-align: center;
-  cursor: pointer;
-  background-color: #007BFF;
-  color: white;
-  border: none;  /* Removes any default border */
-  outline: none;  /* Removes focus outline */
-  transition: background-color 0.3s ease, transform 0.3s ease;
+#file1-sign-button,
+.file2-browse-button,
+#file2-sign-button { /* Apply the same styles to both button elements */
+    display: inline-block;
+    padding: 12px 24px;
+    margin: 10px;
+    border-radius: 25px;
+    font-size: 18px;
+    text-align: center;
+    cursor: pointer;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    outline: none;
+    transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 .file1-browse-button:hover,
-#file1-sign-button:hover {
-  background-color: #0056b3;
-  transform: scale(1.05);
+#file1-sign-button:hover,
+.file2-browse-button:hover,
+#file2-sign-button:hover { /* Apply the same hover styles to both button elements */
+    background-color: #0056b3;
+    transform: scale(1.05);
 }
+
 .centered-heading {
-  text-align: center;
-  margin-bottom: 2rem;
-  overflow: hidden; /* Optional, in case of overshooting */
+    text-align: center;
+    margin-bottom: 2rem;
+    overflow: hidden;
 }
 
 #sign-text {
-  display: inline-block;
-  margin: 0;
-  font-size: 36px;
-  color: #333;
-  opacity: 0; /* initial state */
-  transform: scale(0.7); /* initial scale */
-  transition: all 0.8s cubic-bezier(0.165, 0.84, 0.44, 1); /* easeOutQuart easing for smooth finish */
-  animation: zoom-in-fade-in 1s cubic-bezier(0.165, 0.84, 0.44, 1) 0.5s forwards;
+    display: inline-block;
+    margin: 0;
+    font-size: 36px;
+    color: #333;
+    opacity: 0;
+    transform: scale(0.7);
+    transition: all 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+    animation: zoom-in-fade-in 1s cubic-bezier(0.165, 0.84, 0.44, 1) 0.5s forwards;
 }
 
 @keyframes zoom-in-fade-in {
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-.file1-drag-success {
-    border: 2px solid #28a745; /* Change the border color to green */
-    animation: pulse 1s ease-in-out; /* Add a pulse animation */
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 @keyframes pulse {
@@ -609,7 +621,3 @@ input[type="radio"] {
         transform: scale(1);
     }
 }
-
-
-
-

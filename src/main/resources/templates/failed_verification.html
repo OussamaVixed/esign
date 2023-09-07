@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>File Verification</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/js/all.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" th:href="@{css/failed.css}">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <a href="#" class="back-button" onclick="goBack()">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            <a th:href="@{/}" class="logo">
+                <img th:src="@{/images/logo.png}" alt="Logo">
+            </a>
+        </div>
+        <div class="navbar-right">
+            <a href="#" class="notification-button">
+                <i class="fas fa-bell"></i>
+                <span class="notification-count" th:text="${notifications != null ? #lists.size(notifications) : 0}">0</span>
+            </a>
+            <a href="#" class="settings-button">
+                <i class="fas fa-cog"></i>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Content -->
+  	<div class="content" id="verification-content">
+	    <h1 id="verification-title">File Verification</h1>
+	    <div class="verification-message" id="verification-message">
+	        <h2 id="verification-status">The File is Not Signed or Has Been Tampered With</h2>
+	        <p id="verification-instructions">If you encounter this message, please follow these steps:</p>
+	        <ol id="verification-steps">
+	            <li>Do not open the file.</li>
+	            <li>Immediately contact the file sender or administrator.</li>
+	            <li>Verify the file source and authenticity.</li>
+	            <li>Consider not using the file until its integrity is confirmed.</li>
+	        </ol>
+	    </div>
+	</div>
+
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+</body>
+</html>

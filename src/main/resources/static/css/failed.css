@@ -1,0 +1,109 @@
+body {
+    font-family: 'Helvetica Neue', sans-serif; /* Changing the font to Helvetica Neue */
+    line-height: 1.6; /* Improving line height */
+    margin: 0;
+    padding: 0;
+    background-color: #f7f7f7;
+}
+.navbar {
+    background-color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-left, .navbar-right {
+    display: flex;
+    align-items: center;
+}
+
+.navbar .logo img {
+    height: 40px;
+}
+
+.notification-button, .settings-button {
+    color: #000;
+    font-size: 1.2rem;
+    margin-left: 15px;
+    position: relative;
+    text-decoration: none;
+}
+
+.notification-count {
+    position: absolute;
+    top: -5px;
+    right: -10px;
+    background-color: #e44d26;
+    color: #fff;
+    padding: 3px 6px;
+    font-size: 0.8rem;
+    border-radius: 50%;
+}
+.back-button {
+    color: #000;
+    font-size: 1.5rem;
+    margin-right: 15px;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.back-button:hover {
+    color: #007BFF;
+}
+/* Your content styles */
+.content {
+    margin-left: 260px;
+    padding: 20px;
+    margin-top: 10px;
+}
+
+/* Base styles for your verification content */
+#verification-content {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Increased shadow for depth */
+    transition: transform 0.3s, box-shadow 0.3s; /* Added smooth transitions */
+    margin: 20px auto;
+    max-width: calc(100% - 260px);
+    position: relative;
+    display: block;
+    border: 2px solid transparent; /* Transparent border for initial state */
+    text-align: center; /* Center-align text */
+}
+
+.verification-message h2 {
+    color: #007BFF;
+    font-size: 32px; /* Larger font size for heading */
+    margin-bottom: 20px;
+    font-weight: bold; /* Added bold font */
+}
+
+.verification-message p {
+    color: #333;
+    font-size: 20px; /* Larger font size for content */
+    margin-bottom: 20px;
+    line-height: 1.5; /* Increased line height for readability */
+}
+
+/* Message list styles */
+#verification-steps {
+    list-style-type: decimal;
+    margin-left: 20px;
+    font-size: 20px; /* Larger font size for list items */
+    text-align: left; /* Left-align the list items */
+    padding-left: 20px; /* Add some padding to align with the content */
+}
+
+#verification-steps li {
+    margin-bottom: 10px;
+}
+
+/* Enhanced frame and hover effect */
+#verification-content:hover {
+    transform: translateY(-5px); /* Lift up slightly on hover */
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3); /* Increased shadow on hover */
+    border: 2px solid #007BFF; /* Border on hover */
+}

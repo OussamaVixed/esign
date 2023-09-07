@@ -180,31 +180,37 @@ public class UserController {
 
                 // Retrieve the signer's username from the PDF
                 String signerUsername = blobStorageService.getSignerUsernameFromPdfBlob(user.getId(), filename);
+                String signerDate = blobStorageService.getSignatureDateFromPdfBlob(user.getId(), filename);
+                System.out.println("Signer date: " + signerDate);
                 System.out.println("Signer Username: " + signerUsername);
 
                 // Convert the MultipartFile to byte array
                 byte[] pdfData = multitobytes.multipartFileToByteArray(file);
                 System.out.println("Converted MultipartFile to byte array.");
+                Boolean xxx1 = userService.verifyPdfSignature(pdfData, signerUsername);
+                blobStorageService.simpleDeleteFile(user.getId(), filename);
 
                 // Verify the PDF signature
-                if (userService.verifyPdfSignature(pdfData, signerUsername)) {
+                if (xxx1) {
                     System.out.println("File and signature verified successfully.");
                     model.addAttribute("message", "File and signature verified successfully");
-                    return "sign_success";
+                    model.addAttribute("signerUsername", signerUsername);
+                    model.addAttribute("signerDate", signerDate);
+                    return "successful_verification";
                 } else {
                     System.out.println("Signature verification failed.");
                     model.addAttribute("message", "Signature verification failed");
-                    return "sign_error";
+                    return "failed_verification";
                 }
             } else {
                 System.out.println("User not found.");
                 model.addAttribute("message", "User not found");
-                return "upload_error";
+                return "failed_verification";
             }
         } catch (Exception e) {
             System.out.println("Exception occurred: " + e.getMessage());
             model.addAttribute("message", "Failed to upload and verify file");
-            return "upload_error";
+            return "failed_verification";
         }
     }
 
