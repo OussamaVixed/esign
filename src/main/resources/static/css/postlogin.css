@@ -470,6 +470,17 @@ input[type="radio"] {
     margin-left: 260px;
     position: relative;
 }
+#signature-status-content1 {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: 0.3s ease;
+    margin: 20px auto;
+    max-width: 100%;
+    margin-left: 260px;
+    position: relative;
+}
 
 .signature-status-table {
     width: 100%;
@@ -503,7 +514,12 @@ input[type="radio"] {
 .status-waiting {
     color: #FFC107;
 }
-
+.status-done, .status-rejected {
+    font-size: 24px;
+}
+.status-rejected {
+    color: rgb(255, 0, 0);
+}
 #file1-upload-content,
 #pdf-check-content {
     background: #fff;
@@ -621,3 +637,26 @@ input[type="radio"] {
         transform: scale(1);
     }
 }
+/* Button styles */
+.download-button1 {
+  display: inline-block; /* Use inline-block to make it smaller */
+  padding: 6px 12px; /* Smaller padding for a smaller button */
+  background-color: #007BFF;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  font-size: 14px; /* Smaller font size */
+  margin: 10px auto; /* Center the button horizontally with spacing */
+  width: fit-content; /* Make the button width fit its content */
+}
+
+/* Hover effect */
+.download-button1:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+}
+

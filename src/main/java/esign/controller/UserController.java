@@ -98,9 +98,27 @@ public class UserController {
             List<String> Username2 = signatureStatus.getUsername2();
             List<Date> sigdate1 = signatureStatus.getSigdate();
             List<String> filenamess = signatureStatus.getFileid();
-            List<String> sigdate = userService.getTimeRemaining(sigdate1);
-            model.addAttribute("issigned", issigned);
-            model.addAttribute("Username2", Username2);
+            List<String> groups1 = signatureStatus.getGroupnames();
+            List<Boolean> isrefused = signatureStatus.getRefused();
+            List<String> sigdate3 = userService.getTimeRemaining(sigdate1);
+            model.addAttribute("groupps", groups1);
+            model.addAttribute("issigned1", issigned);
+            model.addAttribute("Username3", Username2);
+            model.addAttribute("sigdate1", sigdate3);
+            model.addAttribute("isrefused1",isrefused);
+
+
+            UserService.MixedListResult theresult = userService.mixLists(Username2, groups1, issigned, isrefused, sigdate1);
+            
+            List<String> mixedNames = theresult.mixedNames;
+            List<Boolean> mixedIsSigned = theresult.mixedIsSigned;
+            List<Boolean> mixedIsRefused = theresult.mixedIsRefused;
+            List<Date> mixedDates = theresult.mixedDates;
+            List<String> sigdate = userService.getTimeRemaining(mixedDates);
+
+            model.addAttribute("groups1", groups1);
+            model.addAttribute("issigned", mixedIsSigned);
+            model.addAttribute("Username2", mixedNames);
             model.addAttribute("sigdate", sigdate);
             model.addAttribute("filenamess", filenamess);
             model.addAttribute("groups", groupNames);
@@ -108,6 +126,7 @@ public class UserController {
             model.addAttribute("files", userFiles);
             model.addAttribute("username", username);
             model.addAttribute("formattedDurations", formattedDurations);
+            model.addAttribute("isrefused",mixedIsRefused);
             System.out.println(groupNames); // Debugging message
             System.out.println(sigdate);
             return "postlogin";
@@ -244,22 +263,27 @@ public class UserController {
     public String listUserFiles(@RequestParam("username") String username, Model model) {
         List<String> userFiles = userService.getUserFiles(username);
         List<String> signedFiles = new ArrayList<>();
+        List<String> refusedFiles = new ArrayList<>();
+
 
         System.out.println("User Files: " + userFiles); // Debug print
 
         for (String file : userFiles) {
             boolean isSigned = userService.checkSignatureFileExists(username, file);
             System.out.println("File: " + file + ", Is Signed: " + isSigned); // Debug print
+            if (signatureService.getRefused(username,file)) {
+            	refusedFiles.add(file);
+            }
             if (isSigned) {
                 signedFiles.add(file);
             }
         }
 
         System.out.println("Signed Files: " + signedFiles); // Debug print
-
         model.addAttribute("username", username);
         model.addAttribute("userFiles", userFiles);
         model.addAttribute("signedFiles", signedFiles);
+        model.addAttribute("refusedFiles", refusedFiles);
 
         return "userfiles"; // a new HTML template that displays the files
     }
@@ -285,6 +309,26 @@ public class UserController {
         } catch (Exception e) {
             model.addAttribute("message", "Failed to sign file");
             return "sign_error";
+        }
+    }
+    @PostMapping("/refuse")
+    public String refuse(@RequestParam("username") String username,
+                           @RequestParam("filename") String filename,
+                           Model model) {
+        try {
+            // Fetch the user by their username
+            User user = userService.findByUsername(username);
+            // Check if a user with the provided username exists
+            if (user != null) {
+                signatureService.updateRefused(username,filename);
+                return "refuse_success";
+            } else {
+                model.addAttribute("message", "User not found");
+                return "refuse_error";
+            }
+        } catch (Exception e) {
+            model.addAttribute("message", "Failed to sign file");
+            return "refuse_error";
         }
     }
     @PostMapping("/send")
@@ -313,6 +357,7 @@ public class UserController {
 
             List<String> receiverUsernames = new ArrayList<>();
             if (receiverUsername != null && !receiverUsername.isEmpty()) {
+            	groupName = "0";
                 receiverUsernames.add(receiverUsername);
             } else if (groupName != null && !groupName.isEmpty()) {
                 receiverUsernames = groupsService.getGroupMembersByUsernameAndGroupName(username, groupName);
@@ -353,6 +398,9 @@ public class UserController {
                     signatureStatus.getSigdate().add(expiryDate);// Duplicate expiryDate for sigdate
                     signatureStatus.getUsername2().add(receiver); // Add each username from receiverUsernames
                     signatureStatus.getSigID().add(signatureObj.getId());  // Duplicate signatureObj ID
+                    signatureStatus.getRefused().add(false);    // Duplicate false (0) for issigned
+                    signatureStatus.getGroupnames().add(groupName);
+
                 }
                 
                 // Save the updated object back into the database

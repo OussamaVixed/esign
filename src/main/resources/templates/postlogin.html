@@ -45,39 +45,81 @@
 	    <table class="signature-status-table">
 	        <thead>
 	            <tr>
-	                <th>Username</th>
+	                <th>Sent to</th>  
 	                <th>Filename</th>
 	                <th>Expires</th>
 	                <th>Status</th>
-	                 <th>Action</th>
 	            </tr>
 	        </thead>
 	        <tbody>
 	            <th:block th:each="i, iterStat : ${issigned}">
 	                <tr>
 	                    <td th:text="${Username2[iterStat.index]}"></td>
-	                    <td th:text="${filenamess[iterStat.index]}"></td>
+						<td th:text="${filenamess[iterStat.index].substring(1)}"></td>
 	                    <td th:text="${sigdate[iterStat.index]}"></td>
 	                    <td>
-	                        <span th:if="${i}">
+	                        <span th:if="${i}" th:unless="${isrefused[iterStat.index]}">
 	                            <i class="fas fa-check-circle status-done"></i>
 	                        </span>
-	                        <span th:unless="${i}">
-	                            <i class="fas fa-clock status-waiting"></i>
+							<span th:if="${!(i or isrefused[iterStat.index])}">
+		                        <i class="fas fa-clock status-waiting"></i>
+	                        </span>
+	                        <span th:if="${isrefused[iterStat.index]}">
+	                            <i class="fas fa-times-circle status-rejected"></i>
+	                        </span>
+	                </tr>
+	            </th:block>
+	        </tbody>
+	    </table>
+	   	<a href="javascript:void(0);" id="show-button" class="download-button1">show in Details</a>
+	</div>
+	 <div id="signature-status-content1" class="content" style="display: none;">
+	    <h2>Signature Status</h2>
+	    <table class="signature-status-table">
+	        <thead>
+	            <tr>
+	                <th>Username</th>
+					<th>Groupname</th>
+	                <th>Filename</th>
+	                <th>Expires</th>
+	                <th>Status</th>
+	                <th>Action</th>  
+	            </tr>
+	        </thead>
+	        <tbody>
+	            <th:block th:each="i, iterStat : ${issigned1}">
+	                <tr>
+	                    <td th:text="${Username3[iterStat.index]}"></td>
+						<td>
+						    <span th:if="${groupps[iterStat.index] == '0'}">-</span>
+						    <span th:if="${groupps[iterStat.index] != '0'}" th:text="${groupps[iterStat.index]}"></span>
+						</td>
+						<td th:text="${filenamess[iterStat.index].substring(1)}"></td>
+	                    <td th:text="${sigdate1[iterStat.index]}"></td>
+	                    <td>
+	                        <span th:if="${i}" th:unless="${isrefused1[iterStat.index]}">
+	                            <i class="fas fa-check-circle status-done"></i>
+	                        </span>
+							<span th:if="${!(i or isrefused1[iterStat.index])}">
+		                        <i class="fas fa-clock status-waiting"></i>
+	                        </span>
+	                        <span th:if="${isrefused1[iterStat.index]}">
+	                            <i class="fas fa-times-circle status-rejected"></i>
 	                        </span>
 	                    </td>
 	                    <td>
 							<span th:if="${i}">
-							<a th:href="@{/downloadsigned?username={username}&filename={fileName}(username=${Username2[iterStat.index]},fileName=${filenamess[iterStat.index]})}" class="download-button">Download</a>
+							<a th:href="@{/downloadsigned?username={username}&filename={fileName}(username=${Username3[iterStat.index]},fileName=${filenamess[iterStat.index]})}" class="download-button">Download</a>
 							</span>
 							<span th:unless="${i}">
-							<a th:href="@{/download?username={username}&filename={fileName}(username=${Username2[iterStat.index]},fileName=${filenamess[iterStat.index]})}" class="download-button">Download</a>
+							<a th:href="@{/download?username={username}&filename={fileName}(username=${Username3[iterStat.index]},fileName=${filenamess[iterStat.index]})}" class="download-button">Download</a>
 							</span>
 			            </td>
 	                </tr>
 	            </th:block>
 	        </tbody>
 	    </table>
+	    
 	</div>
     <div id="upload-content" class="content" style="display: none;">
 	    <h2>Upload your file.</h2>

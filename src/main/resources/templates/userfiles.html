@@ -35,11 +35,21 @@
                 <div th:if="${#lists.contains(signedFiles, file)}">
                     <button class="button signed" disabled>Already Signed!</button>
                 </div>
-                <div th:unless="${#lists.contains(signedFiles, file)}">
+                <div th:if="${#lists.contains(refusedFiles, file)}">
+                    <button class="button signed" disabled>Refused!</button>
+                </div>
+                <div th:unless="${#lists.contains(signedFiles, file) || #lists.contains(refusedFiles, file)}">
                     <form th:action="@{/sign}" method="post" style="display: inline-block;">
                         <input type="hidden" th:value="${username}" name="username">
                         <input type="hidden" th:value="${file}" name="filename">
                         <input type="submit" value="Sign" class="button">
+                    </form>
+                </div>
+                <div th:unless="${#lists.contains(signedFiles, file) || #lists.contains(refusedFiles, file)}">
+                    <form th:action="@{/refuse}" method="post" style="display: inline-block;">
+                        <input type="hidden" th:value="${username}" name="username">
+                        <input type="hidden" th:value="${file}" name="filename">
+                        <input type="submit" value="Refuse" class="button">
                     </form>
                 </div>
                 <div class="buttons">

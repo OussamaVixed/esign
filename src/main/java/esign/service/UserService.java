@@ -86,6 +86,9 @@ public class UserService {
         	signaturestatObj.setSigdate(new ArrayList<>());
         	signaturestatObj.setUsername2(new ArrayList<>());
         	signaturestatObj.setSigID(new ArrayList<>());
+        	signaturestatObj.setRefused(new ArrayList<>());
+        	signaturestatObj.setGroupnames(new ArrayList<>());
+
 
         signatureStatusRepository.save(signaturestatObj);
         
@@ -366,7 +369,64 @@ public class UserService {
 
         return false;
     }
+    
+    public static class MixedListResult {
+        public List<String> mixedNames;
+        public List<Boolean> mixedIsSigned;
+        public List<Boolean> mixedIsRefused;
+        public List<Date> mixedDates;
 
+        public MixedListResult(List<String> mixedNames, List<Boolean> mixedIsSigned, List<Boolean> mixedIsRefused, List<Date> mixedDates) {
+            this.mixedNames = mixedNames;
+            this.mixedIsSigned = mixedIsSigned;
+            this.mixedIsRefused = mixedIsRefused;
+            this.mixedDates = mixedDates;
+        }
+    }
+
+    public MixedListResult mixLists(List<String> usernames, List<String> groupnames,
+                                           List<Boolean> isSigned, List<Boolean> isRefused, List<Date> dates) {
+        List<String> mixedNames = new ArrayList<>();
+        List<Boolean> mixedIsSigned = new ArrayList<>();
+        List<Boolean> mixedIsRefused = new ArrayList<>();
+        List<Date> mixedDates = new ArrayList<>();
+
+        for (int i = 0; i < usernames.size(); i++) {
+            if (groupnames.get(i).equals("0")) {
+                mixedNames.add(usernames.get(i));
+                mixedIsSigned.add(isSigned.get(i));
+                mixedIsRefused.add(isRefused.get(i));
+                mixedDates.add(dates.get(i));
+                continue;
+            }
+
+            List<String> tempNames = new ArrayList<>();
+            List<Boolean> tempSigned = new ArrayList<>();
+            List<Boolean> tempRefused = new ArrayList<>();
+            List<Date> tempDates = new ArrayList<>();
+            String currentGroupName = groupnames.get(i);
+            Date currentDate = dates.get(i);
+
+            while (i < usernames.size() && groupnames.get(i).equals(currentGroupName) && dates.get(i).equals(currentDate)) {
+                tempNames.add(usernames.get(i));
+                tempSigned.add(isSigned.get(i));
+                tempRefused.add(isRefused.get(i));
+                tempDates.add(dates.get(i));
+                i++;
+            }
+            i--;  // Adjust index
+
+            if (tempNames.size() > 0) {
+                mixedNames.add(currentGroupName);
+                mixedIsSigned.add(!tempSigned.contains(false));
+                mixedIsRefused.add(tempRefused.contains(true));
+                mixedDates.add(currentDate);  // Use the current date as it is shared among all usernames in the group
+            }
+        }
+
+        return new MixedListResult(mixedNames, mixedIsSigned, mixedIsRefused, mixedDates);
+    }
+    
     
   
 

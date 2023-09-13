@@ -13,7 +13,8 @@ function hideAllExcept(elementId) {
         "request-signature-form", 
         "signature-status-content", 
         "file1-upload-content", 
-        "pdf-check-content" // Add the ID of the new content div here
+        "pdf-check-content",
+        "signature-status-content1" // Add the ID of the new content div here
     ];
     
     idsToHide.forEach(function(id) {
@@ -24,7 +25,9 @@ function hideAllExcept(elementId) {
 
     toggleDisplay(elementId);
 }
-
+document.getElementById("show-button").addEventListener("click", function() {
+    hideAllExcept("signature-status-content1");
+});
 document.getElementById("upload-file-button").addEventListener("click", function() {
     hideAllExcept("upload-content");
 });

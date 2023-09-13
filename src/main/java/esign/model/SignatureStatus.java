@@ -17,6 +17,22 @@ public class SignatureStatus {
 	private List<String> Username2;
 	private List<String> fileid;
 	private List<String> sigID;
+	private List<Boolean> refused;
+	private List<String> groupnames;
+
+	
+	public List<String> getGroupnames() {
+		return groupnames;
+	}
+	public void setGroupnames(List<String> groupnames) {
+		this.groupnames = groupnames;
+	}
+	public List<Boolean> getRefused() {
+		return refused;
+	}
+	public void setRefused(List<Boolean> refused) {
+		this.refused = refused;
+	}
 	public String getUID() {
 		return UID;
 	}
